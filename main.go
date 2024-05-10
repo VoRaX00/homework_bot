@@ -24,29 +24,54 @@ func startMenu() tgbotapi.InlineKeyboardMarkup {
 	return keyboard
 }
 
-var keyboard = tgbotapi.NewReplyKeyboard(
+var keyboardStart = tgbotapi.NewReplyKeyboard(
 	tgbotapi.NewKeyboardButtonRow(
 		tgbotapi.NewKeyboardButton("start"),
 	),
 	tgbotapi.NewKeyboardButtonRow(
-		tgbotapi.NewKeyboardButton("Выдать дз на неделю"),
-		tgbotapi.NewKeyboardButton("Выдать дз по определённой дате"),
-	),
-	tgbotapi.NewKeyboardButtonRow(
-		tgbotapi.NewKeyboardButton("Выдать общую информацию"),
-		tgbotapi.NewKeyboardButton("Выдать всю информацию о предмете"),
+		tgbotapi.NewKeyboardButton("Интересует эта неделя"),
+		tgbotapi.NewKeyboardButton("Интересует определённая дата"),
 	),
 )
+
+var keyboardWeek = tgbotapi.NewReplyKeyboard(
+	tgbotapi.NewKeyboardButtonRow(
+		tgbotapi.NewKeyboardButton("Выдать инфомацию"),
+		tgbotapi.NewKeyboardButton("Назад"),
+	),
+)
+
+var keyboardDate = tgbotapi.NewReplyKeyboard(
+	tgbotapi.NewKeyboardButtonRow(
+		tgbotapi.NewKeyboardButton("Ввести дату"),
+		tgbotapi.NewKeyboardButton("Назад"),
+	),
+)
+
+func startBot(update tgbotapi.Update) {
+	msg := tgbotapi.NewMessage(update.Message.Chat.ID, "Привет, меня зовут бот Боба. Хочешь узнать что я умею?")
+	msg.ReplyMarkup = startMenu()
+	msg.ParseMode = "Markdowns"
+	sendMessage(msg)
+}
 
 func commands(update tgbotapi.Update) { //функция которая будет реагировать на команды в чате
 	command := update.Message.Command()
 
 	switch command {
 	case "start":
-		msg := tgbotapi.NewMessage(update.Message.Chat.ID, "Привет, меня зовут бот Боба. Хочешь узнать что я умею?")
-		msg.ReplyMarkup = startMenu()
-		msg.ParseMode = "Markdown"
-		sendMessage(msg)
+		startBot(update)
+	}
+}
+
+func pressKeyboard(update tgbotapi.Update) {
+	command := update.Message.Text
+
+	switch command {
+	case "start":
+		startBot(update)
+	case "Интересует эта неделя":
+
 	}
 }
 
@@ -58,7 +83,7 @@ func callbacks(update tgbotapi.Update) {
 	case "skills":
 		text := fmt.Sprintf("Привет %v", update.CallbackQuery.Message.Chat.FirstName)
 		msg := tgbotapi.NewMessage(int64(chatID), text)
-		msg.ReplyMarkup = keyboard
+		msg.ReplyMarkup = keyboardStart
 		sendMessage(msg)
 
 	case "bye":
