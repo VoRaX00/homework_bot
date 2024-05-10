@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"slices"
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api"
 	"github.com/joho/godotenv"
@@ -15,37 +16,69 @@ func startMenu() tgbotapi.InlineKeyboardMarkup {
 	btnSkills := tgbotapi.NewInlineKeyboardButtonData("Мои навыки", "skills") // tgbotapi.NewKeyboardButton("Привет")
 
 	row := tgbotapi.NewInlineKeyboardRow(btnSkills)
-	// Создаем строки с кнопками
-	// row1 := []tgbotapi.InlineKeyboardButton{btnHi}
-	// row2 := []tgbotapi.InlineKeyboardButton{btnBye}
-
-	// Создаем клавиатуру из кнопок и строк
 	keyboard := tgbotapi.NewInlineKeyboardMarkup(row)
 	return keyboard
 }
 
-var keyboard = tgbotapi.NewReplyKeyboard(
+var keyboardStart = tgbotapi.NewReplyKeyboard(
 	tgbotapi.NewKeyboardButtonRow(
 		tgbotapi.NewKeyboardButton("start"),
 	),
 	tgbotapi.NewKeyboardButtonRow(
-		tgbotapi.NewKeyboardButton("Выдать дз на неделю"),
-		tgbotapi.NewKeyboardButton("Выдать дз по определённой дате"),
-	),
-	tgbotapi.NewKeyboardButtonRow(
-		tgbotapi.NewKeyboardButton("Выдать общую информацию"),
-		tgbotapi.NewKeyboardButton("Выдать всю информацию о предмете"),
+		tgbotapi.NewKeyboardButton("Интересует эта неделя"),
+		tgbotapi.NewKeyboardButton("Интересует определённая дата"),
 	),
 )
+
+var keyboardWeek = tgbotapi.NewReplyKeyboard(
+	tgbotapi.NewKeyboardButtonRow(
+		tgbotapi.NewKeyboardButton("Выдать инфомацию"),
+		tgbotapi.NewKeyboardButton("Назад"),
+	),
+)
+
+var keyboardDate = tgbotapi.NewReplyKeyboard(
+	tgbotapi.NewKeyboardButtonRow(
+		tgbotapi.NewKeyboardButton("Ввести дату"),
+		tgbotapi.NewKeyboardButton("Назад"),
+	),
+)
+
+func startBot(update tgbotapi.Update) {
+	msg := tgbotapi.NewMessage(update.Message.Chat.ID, "Привет, меня зовут бот Боба. Хочешь узнать что я умею?")
+	msg.ReplyMarkup = startMenu()
+	msg.ParseMode = "Markdown"
+	sendMessage(msg)
+}
+
+func addHW(update tgbotapi.Update) {
+	// add homework or info in db
+}
 
 func commands(update tgbotapi.Update) { //функция которая будет реагировать на команды в чате
 	command := update.Message.Command()
 
 	switch command {
 	case "start":
-		msg := tgbotapi.NewMessage(update.Message.Chat.ID, "Привет, меня зовут бот Боба. Хочешь узнать что я умею?")
-		msg.ReplyMarkup = startMenu()
-		msg.ParseMode = "Markdown"
+		startBot(update)
+	case "add":
+		addHW(update)
+	}
+}
+
+func pressKeyboard(update tgbotapi.Update) {
+	command := update.Message.Text
+
+	switch command {
+	case "start":
+		startBot(update)
+	case "Интересует эта неделя":
+		msg := tgbotapi.NewMessage(int64(update.Message.From.ID), "Нажмите на кнопку, если хотите получить информацию")
+		msg.ReplyMarkup = keyboardWeek
+		sendMessage(msg)
+	case "Интересует определённая дата":
+		msg := tgbotapi.NewMessage(int64(update.Message.From.ID), "Нажмите на кнопку, чтобы ввести дату с домашним заданием")
+		msg.ReplyMarkup = keyboardDate
 		sendMessage(msg)
 	}
 }
@@ -58,7 +91,7 @@ func callbacks(update tgbotapi.Update) {
 	case "skills":
 		text := fmt.Sprintf("Привет %v", update.CallbackQuery.Message.Chat.FirstName)
 		msg := tgbotapi.NewMessage(int64(chatID), text)
-		msg.ReplyMarkup = keyboard
+		msg.ReplyMarkup = keyboardStart
 		sendMessage(msg)
 
 	case "bye":
@@ -98,16 +131,24 @@ func main() {
 		fmt.Println(err.Error())
 		return
 	}
+
+	var keyWords = [](string){
+		"start", "Интересует эта неделя", "Интересует определённая дата",
+	}
+
 	// Loop through each update.
 	for update := range updates {
 		// Check if we've gotten a message update.
 
 		if update.CallbackQuery != nil {
+			println("use callback")
 			callbacks(update)
-
+		} else if slices.Contains(keyWords, update.Message.Text) {
+			pressKeyboard(update)
 		} else if update.Message.IsCommand() {
 			commands(update)
 		} else {
+			database()
 			println("simple message")
 		}
 
