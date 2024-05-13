@@ -28,29 +28,3 @@ func connectDatabase() {
 func database() {
 	connectDatabase()
 }
-
-// func createKeyboard() {
-// 	var keyboardStart = tgbotapi.NewReplyKeyboard(
-// 		tgbotapi.NewKeyboardButtonRow(
-// 			tgbotapi.NewKeyboardButton("start"),
-// 		),
-// 		tgbotapi.NewKeyboardButtonRow(
-// 			tgbotapi.NewKeyboardButton("Интересует эта неделя"),
-// 			tgbotapi.NewKeyboardButton("Интересует определённая дата"),
-// 		),
-// 	)
-
-// 	var keyboardWeek = tgbotapi.NewReplyKeyboard(
-// 		tgbotapi.NewKeyboardButtonRow(
-// 			tgbotapi.NewKeyboardButton("Выдать инфомацию"),
-// 			tgbotapi.NewKeyboardButton("Назад"),
-// 		),
-// 	)
-
-// 	var keyboardDate = tgbotapi.NewReplyKeyboard(
-// 		tgbotapi.NewKeyboardButtonRow(
-// 			tgbotapi.NewKeyboardButton("Ввести дату"),
-// 			tgbotapi.NewKeyboardButton("Назад"),
-// 		),
-// 	)
-// }

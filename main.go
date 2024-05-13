@@ -12,6 +12,7 @@ import (
 
 var bot *tgbotapi.BotAPI
 
+// стартовое inline меню
 func startMenu() tgbotapi.InlineKeyboardMarkup {
 	btnSkills := tgbotapi.NewInlineKeyboardButtonData("Мои навыки", "skills") // tgbotapi.NewKeyboardButton("Привет")
 
@@ -20,6 +21,7 @@ func startMenu() tgbotapi.InlineKeyboardMarkup {
 	return keyboard
 }
 
+// стартовая клава
 var keyboardStart = tgbotapi.NewReplyKeyboard(
 	tgbotapi.NewKeyboardButtonRow(
 		tgbotapi.NewKeyboardButton("start"),
@@ -30,6 +32,7 @@ var keyboardStart = tgbotapi.NewReplyKeyboard(
 	),
 )
 
+// клава для вывода информации на текущую неделю
 var keyboardWeek = tgbotapi.NewReplyKeyboard(
 	tgbotapi.NewKeyboardButtonRow(
 		tgbotapi.NewKeyboardButton("Выдать инфомацию"),
@@ -37,6 +40,7 @@ var keyboardWeek = tgbotapi.NewReplyKeyboard(
 	),
 )
 
+// клава для ввода даты пользователем
 var keyboardDate = tgbotapi.NewReplyKeyboard(
 	tgbotapi.NewKeyboardButtonRow(
 		tgbotapi.NewKeyboardButton("Ввести дату"),
@@ -44,6 +48,7 @@ var keyboardDate = tgbotapi.NewReplyKeyboard(
 	),
 )
 
+// начальная функция при запуске бота
 func startBot(update tgbotapi.Update) {
 	msg := tgbotapi.NewMessage(update.Message.Chat.ID, "Привет, меня зовут бот Боба. Хочешь узнать что я умею?")
 	msg.ReplyMarkup = startMenu()
@@ -66,6 +71,7 @@ func commands(update tgbotapi.Update) { //функция которая буде
 	}
 }
 
+// нажатие на ReplyKeyboard
 func pressKeyboard(update tgbotapi.Update) {
 	command := update.Message.Text
 
@@ -83,6 +89,7 @@ func pressKeyboard(update tgbotapi.Update) {
 	}
 }
 
+// ответ на нажатие inlineButton
 func callbacks(update tgbotapi.Update) {
 	callbackData := update.CallbackQuery.Data
 	chatID := update.CallbackQuery.From.ID
@@ -102,6 +109,7 @@ func callbacks(update tgbotapi.Update) {
 	}
 }
 
+// отправка сообщений пользователю
 func sendMessage(msg tgbotapi.Chattable) {
 	if _, err := bot.Send(msg); err != nil {
 		fmt.Println(err.Error())
@@ -136,10 +144,7 @@ func main() {
 		"start", "Интересует эта неделя", "Интересует определённая дата",
 	}
 
-	// Loop through each update.
 	for update := range updates {
-		// Check if we've gotten a message update.
-
 		if update.CallbackQuery != nil {
 			println("use callback")
 			callbacks(update)
@@ -152,7 +157,7 @@ func main() {
 			println("simple message")
 		}
 
-		if update.Message == nil { // Ignore any non-Message updates
+		if update.Message == nil {
 			continue
 		}
 	}
