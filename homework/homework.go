@@ -42,12 +42,22 @@ func (hw *Homework) SetDeadline(deadline time.Time) {
 	hw.deadline = deadline
 }
 
-func (hw *Homework) AddHomeworkInDB(db *sql.DB) (bool, error) {
+func (hw *Homework) InsertHomework(db *sql.DB) (bool, error) {
 	req := fmt.Sprintf("INSERT INTO homework (subject, content, deadline) values('%v', '%v', '%v'))", hw.subject, hw.content, hw.deadline)
 	result, err := db.Exec(req)
 	if err != nil {
 		return false, err
 	}
 	fmt.Println(result.RowsAffected())
+	return true, nil
+}
+
+func (hw *Homework) UpdateHomework(db *sql.DB) (bool, error) {
+
+	return true, nil
+}
+
+func (hw *Homework) DeleteHomework(db *sql.DB) (bool, error) {
+
 	return true, nil
 }

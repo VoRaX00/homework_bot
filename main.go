@@ -1,6 +1,7 @@
 package main
 
 import (
+	"database/sql"
 	"fmt"
 	"log"
 	"os"
@@ -144,6 +145,14 @@ func main() {
 		"start", "Интересует эта неделя", "Интересует определённая дата",
 	}
 
+	var db *sql.DB
+	db, err = connectDatabase()
+	if err != nil {
+		panic(err)
+	}
+
+	SelectAllHomework(db)
+
 	for update := range updates {
 		if update.CallbackQuery != nil {
 			println("use callback")
@@ -153,7 +162,6 @@ func main() {
 		} else if update.Message.IsCommand() {
 			commands(update)
 		} else {
-			database()
 			println("simple message")
 		}
 
