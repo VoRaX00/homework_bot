@@ -1,7 +1,7 @@
 package repository
 
-import "main.go/Entity"
+import "main.go/entity"
 
 type IHomeworkRepository interface {
-	Create(homework Entity.Homework) (int, error)
+	Create(homework entity.Homework) (int, error)
 }

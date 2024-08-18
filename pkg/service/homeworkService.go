@@ -1,7 +1,7 @@
 package service
 
 import (
-	"main.go/Entity"
+	"main.go/entity"
 	"main.go/pkg/repository"
 )
 
@@ -15,6 +15,6 @@ func NewHomeworkService(repos *repository.Repository) *HomeworkService {
 	}
 }
 
-func (s *HomeworkService) Create(homework Entity.Homework) (int, error) {
+func (s *HomeworkService) Create(homework entity.Homework) (int, error) {
 	return s.repos.Create(homework)
 }

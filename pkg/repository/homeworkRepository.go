@@ -3,7 +3,7 @@ package repository
 import (
 	"fmt"
 	"github.com/jmoiron/sqlx"
-	"main.go/Entity"
+	"main.go/entity"
 )
 
 type HomeworkRepository struct {
@@ -16,7 +16,7 @@ func NewHomeworkRepository(db *sqlx.DB) *HomeworkRepository {
 	}
 }
 
-func (r *HomeworkRepository) Create(homework Entity.Homework) (int, error) {
+func (r *HomeworkRepository) Create(homework entity.Homework) (int, error) {
 	tx, err := r.db.Beginx()
 	if err != nil {
 		return -1, err

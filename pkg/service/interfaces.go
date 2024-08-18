@@ -1,7 +1,7 @@
 package service
 
-import "main.go/Entity"
+import "main.go/entity"
 
 type IHomeworkService interface {
-	Create(homework Entity.Homework) (int, error)
+	Create(homework entity.Homework) (int, error)
 }
