@@ -71,3 +71,68 @@ func (r *HomeworkRepository) Create(homework entity.Homework) (int, error) {
 
 	return homeworkId, nil
 }
+
+func (r *HomeworkRepository) GetByTags(tags []string) ([]entity.Homework, error) {
+	query := fmt.Sprintf(`SELECT h.* 
+		FROM %s h
+		JOIN %s ht ON h.id = ht.homework_id
+		JOIN %s t ON ht.tag_id = t.id
+		WHERE t.name = ANY($1)
+		GROUP BY h.id
+		HAVING COUNT(DISTINCT t.name) = $2;`, homeworkTable, homeworkTagsTable, tagsTable)
+
+	var homeworks []entity.Homework
+	err := r.db.Select(&homeworks, query, tags, len(tags))
+
+	return homeworks, err
+}
+
+func (r *HomeworkRepository) GetByName(name string) ([]entity.Homework, error) {
+	query := fmt.Sprintf(`SELECT h.name, h.description, h.image, h.created_at, h.deadline, h.updated_at, ARRAY_AGG(t.name) AS %s
+		FROM %s h 
+		LEFT JOIN %s ht 
+		ON h.id = ht.homework_id
+		LEFT JOIN %s t 
+		ON ht.tag_id = t.id WHERE h.name = $1 GROUP BY h.id;`, tagsTable, homeworkTable, homeworkTagsTable, tagsTable)
+	var homeworks []entity.Homework
+	err := r.db.Select(&homeworks, query, name)
+	return homeworks, err
+}
+
+func (r *HomeworkRepository) GetById(id int) (entity.Homework, error) {
+	query := fmt.Sprintf(`SELECT h.name, h.description, h.image, h.created_at, h.deadline, h.updated_at, ARRAY_AGG(t.name) AS %s
+		FROM %s h 
+		LEFT JOIN %s ht 
+		ON h.id = ht.homework_id
+		LEFT JOIN %s t 
+		ON ht.tag_id = t.id WHERE h.id = $1 GROUP BY h.id;`, tagsTable, homeworkTable, homeworkTagsTable, tagsTable)
+	var homeworks entity.Homework
+	err := r.db.Select(&homeworks, query, id)
+	return homeworks, err
+}
+
+func (r *HomeworkRepository) GetByWeek() ([]entity.Homework, error) {
+	query := fmt.Sprintf(`
+		SELECT *
+		FROM %s
+		WHERE deadline >= DATE_TRUNC('week', NOW())
+		AND deadline < DATE_TRUNC('week', NOW()) + INTERVAL '1 week';`, homeworkTable)
+
+	var homeworks []entity.Homework
+	err := r.db.Select(&homeworks, query)
+
+	return homeworks, err
+}
+
+func (r *HomeworkRepository) GetAll() ([]entity.Homework, error) {
+	query := fmt.Sprintf(`SELECT h.name, h.description, h.image, h.created_at, h.deadline, h.updated_at, ARRAY_AGG(t.name) AS %s
+		FROM %s h 
+		LEFT JOIN %s ht 
+		ON h.id = ht.homework_id
+		LEFT JOIN %s t 
+		ON ht.tag_id = t.id GROUP BY h.id;`, tagsTable, homeworkTable, homeworkTagsTable, tagsTable)
+	var homeworks []entity.Homework
+	err := r.db.Select(&homeworks, query)
+
+	return homeworks, err
+}
