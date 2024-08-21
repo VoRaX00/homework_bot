@@ -9,4 +9,5 @@ type IHomeworkService interface {
 	GetAll() ([]entity.Homework, error)
 	GetByName(name string) ([]entity.Homework, error)
 	GetByWeek() ([]entity.Homework, error)
+	Update(homeworkToUpdate entity.HomeworkToUpdate) (entity.Homework, error)
 }

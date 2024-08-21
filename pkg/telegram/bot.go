@@ -1,7 +1,7 @@
 package telegram
 
 import (
-	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api"
+	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"github.com/sirupsen/logrus"
 	"main.go/pkg/service"
 )
@@ -19,14 +19,8 @@ func NewBot(bot *tgbotapi.BotAPI, service *service.Service) *Bot {
 }
 
 func (b *Bot) Start() error {
-
-	updates, err := b.initUpdatesChannel()
-	if err != nil {
-		return err
-	}
-
+	updates := b.initUpdatesChannel()
 	b.handleUpdates(updates)
-
 	return nil
 }
 
@@ -43,15 +37,24 @@ func (b *Bot) handleUpdates(updates tgbotapi.UpdatesChannel) {
 			continue
 		}
 
-		b.handleMessage(update.Message)
+		if update.Message.MediaGroupID != "" {
+			if err := b.handleMediaGroup(update.Message); err != nil {
+				logrus.Errorf("[telegram] error when handling media group: %s", err.Error())
+			}
+			continue
+		}
+
+		if err := b.handleMessage(update.Message); err != nil {
+			logrus.Errorf("[telegram] error when handling message: %s", err.Error())
+		}
 	}
 }
 
-func (b *Bot) initUpdatesChannel() (tgbotapi.UpdatesChannel, error) {
+func (b *Bot) initUpdatesChannel() tgbotapi.UpdatesChannel {
 	u := tgbotapi.NewUpdate(0)
 	u.Timeout = 10
 
-	updates, err := b.bot.GetUpdatesChan(u)
+	updates := b.bot.GetUpdatesChan(u)
 
-	return updates, err
+	return updates
 }

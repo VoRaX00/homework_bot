@@ -5,7 +5,7 @@ import "time"
 type Homework struct {
 	Name        string    `db:"name"`
 	Description string    `db:"description"`
-	Image       string    `db:"image"`
+	Images      []string  `db:"images"`
 	Tags        []string  `db:"tags"`
 	CreatedAt   time.Time `db:"created_at"`
 	Deadline    time.Time `db:"deadline"`

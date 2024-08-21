@@ -3,6 +3,7 @@ package repository
 import (
 	"fmt"
 	"github.com/jmoiron/sqlx"
+	"github.com/lib/pq"
 	"main.go/entity"
 )
 
@@ -23,11 +24,11 @@ func (r *HomeworkRepository) Create(homework entity.Homework) (int, error) {
 	}
 
 	query := fmt.Sprintf(`
-		INSERT INTO %s (name, description, image, deadline)
-		VALUES ($1, $2, $3, $4)
+		INSERT INTO %s (name, description, images, deadline)
+		VALUES ($1, $2, $3::TEXT[], $4)
 		RETURNING id`, homeworkTable)
 	var homeworkId int
-	row := tx.QueryRow(query, homework.Name, homework.Description, homework.Image, homework.Deadline)
+	row := tx.QueryRow(query, homework.Name, homework.Description, homework.Images, homework.Deadline)
 
 	if err = row.Scan(&homeworkId); err != nil {
 		return -1, err
@@ -100,23 +101,25 @@ func (r *HomeworkRepository) GetByName(name string) ([]entity.Homework, error) {
 }
 
 func (r *HomeworkRepository) GetById(id int) (entity.Homework, error) {
-	query := fmt.Sprintf(`SELECT h.name, h.description, h.image, h.created_at, h.deadline, h.updated_at, ARRAY_AGG(t.name) AS %s
+	query := fmt.Sprintf(`
+		SELECT h.name, h.description, h.image, h.created_at, h.deadline, h.updated_at, ARRAY_AGG(t.name) AS tags
 		FROM %s h 
-		LEFT JOIN %s ht 
-		ON h.id = ht.homework_id
-		LEFT JOIN %s t 
-		ON ht.tag_id = t.id WHERE h.id = $1 GROUP BY h.id;`, tagsTable, homeworkTable, homeworkTagsTable, tagsTable)
-	var homeworks entity.Homework
-	err := r.db.Select(&homeworks, query, id)
-	return homeworks, err
+		LEFT JOIN %s ht ON h.id = ht.homework_id
+		LEFT JOIN %s t ON ht.tag_id = t.id 
+		WHERE h.id = $1 
+		GROUP BY h.id;`, homeworkTable, homeworkTagsTable, tagsTable)
+
+	var homework entity.Homework
+	err := r.db.Get(&homework, query, id)
+	return homework, err
 }
 
 func (r *HomeworkRepository) GetByWeek() ([]entity.Homework, error) {
 	query := fmt.Sprintf(`
-		SELECT *
-		FROM %s
-		WHERE deadline >= DATE_TRUNC('week', NOW())
-		AND deadline < DATE_TRUNC('week', NOW()) + INTERVAL '1 week';`, homeworkTable)
+		SELECT h.name, h.description, h.image, h.created_at, h.deadline, h.updated_at
+		FROM %s h
+		WHERE h.deadline >= DATE_TRUNC('week', NOW())
+		AND h.deadline < DATE_TRUNC('week', NOW()) + INTERVAL '1 week';`, homeworkTable)
 
 	var homeworks []entity.Homework
 	err := r.db.Select(&homeworks, query)
@@ -125,7 +128,7 @@ func (r *HomeworkRepository) GetByWeek() ([]entity.Homework, error) {
 }
 
 func (r *HomeworkRepository) GetAll() ([]entity.Homework, error) {
-	query := fmt.Sprintf(`SELECT h.name, h.description, h.image, h.created_at, h.deadline, h.updated_at, ARRAY_AGG(t.name) AS %s
+	query := fmt.Sprintf(`SELECT h.name, h.description, h.images, h.created_at, h.deadline, h.updated_at, ARRAY_AGG(t.name) AS %s
 		FROM %s h 
 		LEFT JOIN %s ht 
 		ON h.id = ht.homework_id
@@ -135,4 +138,63 @@ func (r *HomeworkRepository) GetAll() ([]entity.Homework, error) {
 	err := r.db.Select(&homeworks, query)
 
 	return homeworks, err
+}
+
+func (r *HomeworkRepository) Update(homeworkToUpdate entity.HomeworkToUpdate) (entity.Homework, error) {
+	query := "UPDATE " + homeworkTable + " SET "
+	var args []interface{}
+	argIndex := 1
+
+	if homeworkToUpdate.Name != nil {
+		query += fmt.Sprintf("name = $%d, ", argIndex)
+		args = append(args, *homeworkToUpdate.Name)
+		argIndex++
+	}
+
+	if homeworkToUpdate.Description != nil {
+		query += fmt.Sprintf("description = $%d, ", argIndex)
+		args = append(args, *homeworkToUpdate.Description)
+		argIndex++
+	}
+
+	if homeworkToUpdate.Images != nil {
+		query += fmt.Sprintf("image = $%d::TEXT[], ", argIndex)
+		args = append(args, pq.Array(*homeworkToUpdate.Images))
+		argIndex++
+	}
+
+	if homeworkToUpdate.Deadline != nil {
+		query += fmt.Sprintf("deadline = $%d, ", argIndex)
+		args = append(args, *homeworkToUpdate.Deadline)
+		argIndex++
+	}
+
+	query = query[:len(query)-2] + fmt.Sprintf(" WHERE id = $%d RETURNING *;", argIndex)
+	args = append(args, homeworkToUpdate.Id)
+
+	var updatedHomework entity.Homework
+	err := r.db.Get(&updatedHomework, query, args...)
+	if err != nil {
+		return entity.Homework{}, err
+	}
+
+	if homeworkToUpdate.Tags != nil {
+		deleteQuery := fmt.Sprintf("DELETE FROM %s WHERE homework_id = $1;", homeworkTagsTable)
+		_, err = r.db.Exec(deleteQuery, homeworkToUpdate.Id)
+		if err != nil {
+			return entity.Homework{}, err
+		}
+
+		for _, tag := range *homeworkToUpdate.Tags {
+			insertQuery := fmt.Sprintf(`
+				INSERT INTO %s (homework_id, tag_id)
+				VALUES ($1, (SELECT id FROM %s WHERE name = $2));`, homeworkTagsTable, tagsTable)
+			_, err = r.db.Exec(insertQuery, homeworkToUpdate.Id, tag)
+			if err != nil {
+				return entity.Homework{}, err
+			}
+		}
+	}
+
+	return updatedHomework, nil
 }

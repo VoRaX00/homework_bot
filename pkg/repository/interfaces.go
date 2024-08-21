@@ -9,4 +9,5 @@ type IHomeworkRepository interface {
 	GetByWeek() ([]entity.Homework, error)
 	GetById(id int) (entity.Homework, error)
 	GetAll() ([]entity.Homework, error)
+	Update(homeworkToUpdate entity.HomeworkToUpdate) (entity.Homework, error)
 }

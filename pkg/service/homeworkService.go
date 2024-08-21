@@ -38,3 +38,7 @@ func (s *HomeworkService) GetByName(name string) ([]entity.Homework, error) {
 func (s *HomeworkService) GetByWeek() ([]entity.Homework, error) {
 	return s.repos.GetByWeek()
 }
+
+func (s *HomeworkService) Update(homeworkToUpdate entity.HomeworkToUpdate) (entity.Homework, error) {
+	return s.repos.Update(homeworkToUpdate)
+}
