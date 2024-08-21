@@ -16,7 +16,9 @@ or news from teachers
 ## Documentation
 
 ### Commands:
-
+* CREATE
+* GET
+* UPDATE
 
 ## Distribute
 
@@ -26,3 +28,7 @@ or news from teachers
 ## Developers
 
 - [Kerzhakov Nikita](https://github.com/VoRaX00)
+
+## License
+
+Project homework_bot is distributed under the MIT license.
