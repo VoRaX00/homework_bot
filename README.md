@@ -24,7 +24,6 @@ or news from teachers
 
 - [homework_bot](https://t.me/my_pet_favorite_bot)
 
-
 ## Developers
 
 - [Kerzhakov Nikita](https://github.com/VoRaX00)
