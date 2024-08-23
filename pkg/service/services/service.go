@@ -1,9 +1,12 @@
-package service
+package services
 
-import "main.go/pkg/repository"
+import (
+	"main.go/pkg/repository/repository"
+	"main.go/pkg/service/interfaces"
+)
 
 type Service struct {
-	IHomeworkService
+	interfaces.IHomeworkService
 }
 
 func NewService(repos *repository.Repository) *Service {

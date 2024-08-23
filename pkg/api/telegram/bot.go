@@ -3,8 +3,8 @@ package telegram
 import (
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"github.com/sirupsen/logrus"
-	"main.go/entity"
-	"main.go/pkg/service"
+	"main.go/pkg/entity"
+	"main.go/pkg/service/services"
 )
 
 const (
@@ -17,12 +17,12 @@ const (
 
 type Bot struct {
 	bot        *tgbotapi.BotAPI
-	services   *service.Service
+	services   *services.Service
 	userStates map[int64]string
 	userData   map[int64]entity.Homework
 }
 
-func NewBot(bot *tgbotapi.BotAPI, service *service.Service) *Bot {
+func NewBot(bot *tgbotapi.BotAPI, service *services.Service) *Bot {
 	return &Bot{
 		bot:        bot,
 		services:   service,
@@ -75,10 +75,15 @@ func (b *Bot) handleUpdates(updates tgbotapi.UpdatesChannel) {
 		switch b.userStates[userId] {
 		case waitingName:
 			b.handleWaitingName(update.Message)
+			break
 		case waitingDescription:
 			b.handleWaitingDescription(update.Message)
+			break
 		case waitingImages:
 			b.handleWaitingImages(update.Message)
+			break
+		case waitingTags:
+
 		}
 
 		if update.Message.IsCommand() {
@@ -87,13 +92,6 @@ func (b *Bot) handleUpdates(updates tgbotapi.UpdatesChannel) {
 			}
 			continue
 		}
-
-		//if update.Message.MediaGroupID != "" {
-		//	if err := b.handleMediaGroup(update.Message); err != nil {
-		//		logrus.Errorf("[telegram] error when handling media group: %s", err.Error())
-		//	}
-		//	continue
-		//}
 
 		if err := b.handleMessage(update.Message); err != nil {
 			logrus.Errorf("[telegram] error when handling message: %s", err.Error())

@@ -1,9 +1,12 @@
 package repository
 
-import "github.com/jmoiron/sqlx"
+import (
+	"github.com/jmoiron/sqlx"
+	"main.go/pkg/service/interfaces"
+)
 
 type Repository struct {
-	IHomeworkRepository
+	interfaces.IHomeworkRepository
 }
 
 func NewRepository(db *sqlx.DB) *Repository {

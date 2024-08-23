@@ -1,8 +1,8 @@
-package service
+package services
 
 import (
-	"main.go/entity"
-	"main.go/pkg/repository"
+	"main.go/pkg/entity"
+	"main.go/pkg/repository/repository"
 )
 
 type HomeworkService struct {

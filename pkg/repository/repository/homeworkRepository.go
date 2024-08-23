@@ -4,7 +4,8 @@ import (
 	"fmt"
 	"github.com/jmoiron/sqlx"
 	"github.com/lib/pq"
-	"main.go/entity"
+	"main.go/pkg/entity"
+	"main.go/pkg/repository/config"
 )
 
 type HomeworkRepository struct {
@@ -26,7 +27,7 @@ func (r *HomeworkRepository) Create(homework entity.Homework) (int, error) {
 	query := fmt.Sprintf(`
 		INSERT INTO %s (name, description, images, deadline)
 		VALUES ($1, $2, $3::TEXT[], $4)
-		RETURNING id`, homeworkTable)
+		RETURNING id`, config.HomeworkTable)
 	var homeworkId int
 	row := tx.QueryRow(query, homework.Name, homework.Description, homework.Images, homework.Deadline)
 
@@ -35,7 +36,7 @@ func (r *HomeworkRepository) Create(homework entity.Homework) (int, error) {
 	}
 
 	query = fmt.Sprintf(`INSERT INTO %s (name) VALUES ($1)
-					ON CONFLICT (name) DO NOTHING RETURNING id`, tagsTable)
+					ON CONFLICT (name) DO NOTHING RETURNING id`, config.TagsTable)
 
 	tagsId := make([]int, 0, len(homework.Tags))
 	for _, tag := range homework.Tags {
@@ -48,7 +49,7 @@ func (r *HomeworkRepository) Create(homework entity.Homework) (int, error) {
 		if tagId > 0 {
 			tagsId = append(tagsId, tagId)
 		} else {
-			getQuery := fmt.Sprintf(`SELECT id FROM %s WHERE name = $1`, tagsTable)
+			getQuery := fmt.Sprintf(`SELECT id FROM %s WHERE name = $1`, config.TagsTable)
 			err = tx.Get(&tagId, getQuery, tag)
 			if err != nil {
 				return -1, err
@@ -58,7 +59,7 @@ func (r *HomeworkRepository) Create(homework entity.Homework) (int, error) {
 	}
 
 	for _, tagId := range tagsId {
-		query = fmt.Sprintf(`INSERT INTO %s (homework_id, tag_id) VALUES ($1, $2)`, homeworkTagsTable)
+		query = fmt.Sprintf(`INSERT INTO %s (homework_id, tag_id) VALUES ($1, $2)`, config.HomeworkTagsTable)
 		_, err = tx.Exec(query, homeworkId, tagId)
 		if err != nil {
 			_ = tx.Rollback()
@@ -80,7 +81,7 @@ func (r *HomeworkRepository) GetByTags(tags []string) ([]entity.Homework, error)
 		JOIN %s t ON ht.tag_id = t.id
 		WHERE t.name = ANY($1)
 		GROUP BY h.id
-		HAVING COUNT(DISTINCT t.name) = $2;`, homeworkTable, homeworkTagsTable, tagsTable)
+		HAVING COUNT(DISTINCT t.name) = $2;`, config.HomeworkTable, config.HomeworkTagsTable, config.TagsTable)
 
 	var homeworks []entity.Homework
 	err := r.db.Select(&homeworks, query, tags, len(tags))
@@ -94,7 +95,7 @@ func (r *HomeworkRepository) GetByName(name string) ([]entity.Homework, error) {
 		LEFT JOIN %s ht 
 		ON h.id = ht.homework_id
 		LEFT JOIN %s t 
-		ON ht.tag_id = t.id WHERE h.name = $1 GROUP BY h.id;`, tagsTable, homeworkTable, homeworkTagsTable, tagsTable)
+		ON ht.tag_id = t.id WHERE h.name = $1 GROUP BY h.id;`, config.TagsTable, config.HomeworkTable, config.HomeworkTagsTable, config.TagsTable)
 	var homeworks []entity.Homework
 	err := r.db.Select(&homeworks, query, name)
 	return homeworks, err
@@ -107,7 +108,7 @@ func (r *HomeworkRepository) GetById(id int) (entity.Homework, error) {
 		LEFT JOIN %s ht ON h.id = ht.homework_id
 		LEFT JOIN %s t ON ht.tag_id = t.id 
 		WHERE h.id = $1 
-		GROUP BY h.id;`, homeworkTable, homeworkTagsTable, tagsTable)
+		GROUP BY h.id;`, config.HomeworkTable, config.HomeworkTagsTable, config.TagsTable)
 
 	var homework entity.Homework
 	err := r.db.Get(&homework, query, id)
@@ -119,7 +120,7 @@ func (r *HomeworkRepository) GetByWeek() ([]entity.Homework, error) {
 		SELECT h.name, h.description, h.image, h.created_at, h.deadline, h.updated_at
 		FROM %s h
 		WHERE h.deadline >= DATE_TRUNC('week', NOW())
-		AND h.deadline < DATE_TRUNC('week', NOW()) + INTERVAL '1 week';`, homeworkTable)
+		AND h.deadline < DATE_TRUNC('week', NOW()) + INTERVAL '1 week';`, config.HomeworkTable)
 
 	var homeworks []entity.Homework
 	err := r.db.Select(&homeworks, query)
@@ -133,7 +134,7 @@ func (r *HomeworkRepository) GetAll() ([]entity.Homework, error) {
 		LEFT JOIN %s ht 
 		ON h.id = ht.homework_id
 		LEFT JOIN %s t 
-		ON ht.tag_id = t.id GROUP BY h.id;`, tagsTable, homeworkTable, homeworkTagsTable, tagsTable)
+		ON ht.tag_id = t.id GROUP BY h.id;`, config.TagsTable, config.HomeworkTable, config.HomeworkTagsTable, config.TagsTable)
 	var homeworks []entity.Homework
 	err := r.db.Select(&homeworks, query)
 
@@ -141,7 +142,7 @@ func (r *HomeworkRepository) GetAll() ([]entity.Homework, error) {
 }
 
 func (r *HomeworkRepository) Update(homeworkToUpdate entity.HomeworkToUpdate) (entity.Homework, error) {
-	query := "UPDATE " + homeworkTable + " SET "
+	query := "UPDATE " + config.HomeworkTable + " SET "
 	var args []interface{}
 	argIndex := 1
 
@@ -179,7 +180,7 @@ func (r *HomeworkRepository) Update(homeworkToUpdate entity.HomeworkToUpdate) (e
 	}
 
 	if homeworkToUpdate.Tags != nil {
-		deleteQuery := fmt.Sprintf("DELETE FROM %s WHERE homework_id = $1;", homeworkTagsTable)
+		deleteQuery := fmt.Sprintf("DELETE FROM %s WHERE homework_id = $1;", config.HomeworkTagsTable)
 		_, err = r.db.Exec(deleteQuery, homeworkToUpdate.Id)
 		if err != nil {
 			return entity.Homework{}, err
@@ -188,7 +189,7 @@ func (r *HomeworkRepository) Update(homeworkToUpdate entity.HomeworkToUpdate) (e
 		for _, tag := range *homeworkToUpdate.Tags {
 			insertQuery := fmt.Sprintf(`
 				INSERT INTO %s (homework_id, tag_id)
-				VALUES ($1, (SELECT id FROM %s WHERE name = $2));`, homeworkTagsTable, tagsTable)
+				VALUES ($1, (SELECT id FROM %s WHERE name = $2));`, config.HomeworkTagsTable, config.TagsTable)
 			_, err = r.db.Exec(insertQuery, homeworkToUpdate.Id, tag)
 			if err != nil {
 				return entity.Homework{}, err

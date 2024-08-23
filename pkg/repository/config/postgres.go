@@ -1,4 +1,4 @@
-package repository
+package config
 
 import (
 	"fmt"
@@ -6,9 +6,9 @@ import (
 )
 
 const (
-	homeworkTable     = "homework"
-	tagsTable         = "tags"
-	homeworkTagsTable = "homeworks_tags"
+	HomeworkTable     = "homework"
+	TagsTable         = "tags"
+	HomeworkTagsTable = "homeworks_tags"
 )
 
 type Config struct {

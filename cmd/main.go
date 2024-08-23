@@ -7,9 +7,10 @@ import (
 	_ "github.com/lib/pq"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
-	"main.go/pkg/repository"
-	"main.go/pkg/service"
-	"main.go/pkg/telegram"
+	"main.go/pkg/api/telegram"
+	"main.go/pkg/repository/config"
+	repository "main.go/pkg/repository/repository"
+	"main.go/pkg/service/services"
 	"os"
 )
 
@@ -26,7 +27,7 @@ func main() {
 		logrus.Fatalf("load .env file err: %s", err.Error())
 	}
 
-	db, err := repository.NewPostgresDB(repository.Config{
+	db, err := config.NewPostgresDB(config.Config{
 		Host:     viper.GetString("db.host"),
 		Port:     viper.GetString("db.port"),
 		Username: viper.GetString("db.username"),
@@ -48,9 +49,9 @@ func main() {
 	bot.Debug = true
 
 	repos := repository.NewRepository(db)
-	services := service.NewService(repos)
+	service := services.NewService(repos)
 
-	tgBot := telegram.NewBot(bot, services)
+	tgBot := telegram.NewBot(bot, service)
 	err = tgBot.Start()
 	if err != nil {
 		logrus.Fatalf("bot.start failed: %s", err.Error())
