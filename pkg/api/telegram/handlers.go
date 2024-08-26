@@ -1,85 +1,137 @@
 package telegram
 
 import (
-	"fmt"
 	"github.com/sirupsen/logrus"
 	"io"
 	"net/http"
 	"os"
-	filepath "path/filepath"
+	"path/filepath"
 	"regexp"
 	"strings"
 	"time"
 	"unicode"
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
-	uuid "github.com/google/uuid"
+	"github.com/google/uuid"
 )
 
 const (
-	commandStart  = "start"
-	commandAdd    = "add"
-	commandUpdate = "update"
-	commandDelete = "delete"
+	commandStart         = "start"
+	commandAdd           = "add"
+	commandGetOnWeek     = "getOnWeek"
+	commandGetOnToday    = "getOnToday"
+	commandGetOnTomorrow = "getOnTomorrow"
+	commandGetOnDate     = "getOnDate"
+	commandUpdate        = "update"
+	commandDelete        = "delete"
+	commandHelp          = "help"
 )
 
-func (b *Bot) handleCommand(message *tgbotapi.Message) error {
-	msg := tgbotapi.NewMessage(message.Chat.ID, "Я не знаком с такой командой :(")
+func (b *Bot) cmdStart(message *tgbotapi.Message) error {
+	textStart := "Привет! Меня зовут Биба, я буду твоим помошником для получения домашек и иных новосотей!"
+	msg := tgbotapi.NewMessage(message.Chat.ID, textStart)
+	_, err := b.bot.Send(msg)
+	return err
+}
 
+func (b *Bot) cmdAdd(message *tgbotapi.Message) error {
+	b.switcher.ISwitcherAdd.Next()
+	msg := tgbotapi.NewMessage(message.Chat.ID, "Напишите название домашней работы/записи")
+	_, err := b.bot.Send(msg)
+	return err
+}
+
+func (b *Bot) cmdGetOnWeek(message *tgbotapi.Message) error {
+	msg := tgbotapi.NewMessage(message.Chat.ID, "Команда получения дз на неделю")
+	_, err := b.bot.Send(msg)
+
+	return err
+}
+
+func (b *Bot) cmdGetOnToday(message *tgbotapi.Message) error {
+	msg := tgbotapi.NewMessage(message.Chat.ID, "Команда получения дз на неделю")
+	_, err := b.bot.Send(msg)
+
+	return err
+}
+
+func (b *Bot) cmdGetOnTomorrow(message *tgbotapi.Message) error {
+	msg := tgbotapi.NewMessage(message.Chat.ID, "Команда получения дз на неделю")
+	_, err := b.bot.Send(msg)
+
+	return err
+}
+
+func (b *Bot) cmdGetOnDate(message *tgbotapi.Message) error {
+	msg := tgbotapi.NewMessage(message.Chat.ID, "Команда получения дз на неделю")
+	_, err := b.bot.Send(msg)
+
+	return err
+}
+
+func (b *Bot) cmdUpdate(message *tgbotapi.Message) error {
+	b.switcher.ISwitcherUpdate.Next()
+	msg := tgbotapi.NewMessage(message.Chat.ID, "Напишите новое название вашего дз/записи или напишите /done")
+	_, err := b.bot.Send(msg)
+	return err
+}
+
+func (b *Bot) cmdDelete(message *tgbotapi.Message) error {
+	msg := tgbotapi.NewMessage(message.Chat.ID, "Команда удаления")
+	_, err := b.bot.Send(msg)
+
+	return err
+}
+
+func (b *Bot) cmdHelp(message *tgbotapi.Message) error {
+	textHelp := "Инструкция пользования Бибой:"
+	msg := tgbotapi.NewMessage(message.Chat.ID, textHelp)
+	_, err := b.bot.Send(msg)
+	return err
+}
+
+func (b *Bot) cmdDefault(message *tgbotapi.Message) error {
+	msg := tgbotapi.NewMessage(message.Chat.ID, "Я не знаком с такой командой :(")
+	_, err := b.bot.Send(msg)
+	return err
+}
+
+func (b *Bot) handleCommands(message *tgbotapi.Message) error {
 	switch message.Command() {
 	case commandStart:
-		msg.Text = "Ты ввёл команду старт"
-		_, err := b.bot.Send(msg)
+		err := b.cmdStart(message)
 		return err
 	case commandAdd:
-		b.switcher.Next()
-		msg.Text = "Напишите название домашней работы/записи"
-		_, err := b.bot.Send(msg)
+		err := b.cmdAdd(message)
+		return err
+	case commandGetOnWeek:
+		err := b.cmdGetOnWeek(message)
+		return err
+	case commandGetOnToday:
+		err := b.cmdGetOnToday(message)
+		return err
+	case commandGetOnTomorrow:
+		err := b.cmdGetOnTomorrow(message)
+		return err
+	case commandGetOnDate:
+		err := b.cmdGetOnDate(message)
 		return err
 	case commandUpdate:
-		msg.Text = "Ты ввёл команду обновить"
-		_, err := b.bot.Send(msg)
+		err := b.cmdUpdate(message)
 		return err
 	case commandDelete:
-		msg.Text = "Ты ввёл команду удалить"
-		_, err := b.bot.Send(msg)
+		err := b.cmdDelete(message)
+		return err
+	case commandHelp:
+		err := b.cmdHelp(message)
 		return err
 	default:
-		fmt.Println(message.Command())
-		_, err := b.bot.Send(msg)
+		err := b.cmdDefault(message)
 		return err
 	}
 }
 
 func (b *Bot) handleMessage(message *tgbotapi.Message) error {
-
-	//if message.Photo == nil {
-	//	msg := tgbotapi.NewMessage(message.Chat.ID, message.Text)
-	//	_, err := b.bot.Send(msg)
-	//	if err != nil {
-	//		return err
-	//	}
-	//} else {
-	//
-	//	//photos := *message.Photo
-	//	//var mediaGroup []interface{}
-	//	//for i, photo := range photos {
-	//	//	media := tgbotapi.NewInputMediaPhoto(photo.FileID)
-	//	//
-	//	//	if i == 0 {
-	//	//		media.Caption = message.Caption
-	//	//	}
-	//	//
-	//	//	mediaGroup = append(mediaGroup, media)
-	//	//}
-	//	//
-	//	//msg := tgbotapi.NewMediaGroup(message.Chat.ID, mediaGroup)
-	//	//_, err := b.bot.Send(msg)
-	//	//
-	//	//if err != nil {
-	//	//	logrus.Error(err)
-	//	//}
-	//}
 	return nil
 }
 

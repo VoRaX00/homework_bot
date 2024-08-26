@@ -4,7 +4,7 @@ import (
 	"fmt"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"github.com/sirupsen/logrus"
-	"main.go/pkg/api/switchStatus"
+	"main.go/pkg/api/switcher"
 	"main.go/pkg/entity"
 	"main.go/pkg/service/services"
 )
@@ -20,7 +20,7 @@ const (
 type Bot struct {
 	bot        *tgbotapi.BotAPI
 	services   *services.Service
-	switcher   *switchStatus.Switcher
+	switcher   *switcher.Switcher
 	userStates map[int64]string
 	userData   map[int64]entity.Homework
 }
@@ -37,7 +37,7 @@ func NewBot(bot *tgbotapi.BotAPI, service *services.Service) *Bot {
 	return &Bot{
 		bot:        bot,
 		services:   service,
-		switcher:   switchStatus.NewSwitcher(statuses),
+		switcher:   switcher.NewSwitcher(statuses, statuses),
 		userData:   make(map[int64]entity.Homework),
 		userStates: make(map[int64]string),
 	}
@@ -75,7 +75,7 @@ func (b *Bot) Start() error {
 	return nil
 }
 
-func (b *Bot) Create(message *tgbotapi.Message) {
+func (b *Bot) create(message *tgbotapi.Message) {
 	userId := message.From.ID
 	id, err := b.services.Create(b.userData[userId])
 	if err != nil {
@@ -115,11 +115,11 @@ func (b *Bot) handleUpdates(updates tgbotapi.UpdatesChannel) {
 			break
 		case waitingDeadline:
 			b.handleWaitingDeadline(update.Message)
-			b.Create(update.Message)
+			b.create(update.Message)
 			break
 		default:
 			if update.Message.IsCommand() {
-				if err := b.handleCommand(update.Message); err != nil {
+				if err := b.handleCommands(update.Message); err != nil {
 					logrus.Errorf("[telegram] error when handling command: %s", err.Error())
 				}
 				break
@@ -139,4 +139,9 @@ func (b *Bot) initUpdatesChannel() tgbotapi.UpdatesChannel {
 	updates := b.bot.GetUpdatesChan(u)
 
 	return updates
+}
+
+func (b *Bot) SendMessage(msg tgbotapi.MessageConfig) error {
+	_, err := b.bot.Send(msg)
+	return err
 }
