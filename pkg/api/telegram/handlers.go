@@ -32,7 +32,7 @@ func (b *Bot) handleCommand(message *tgbotapi.Message) error {
 		_, err := b.bot.Send(msg)
 		return err
 	case commandAdd:
-		b.userStates[message.From.ID] = waitingName
+		b.switcher.Next()
 		msg.Text = "Напишите название домашней работы/записи"
 		_, err := b.bot.Send(msg)
 		return err
@@ -88,7 +88,7 @@ func (b *Bot) handleWaitingName(message *tgbotapi.Message) {
 	data := b.userData[userId]
 	data.Name = message.Text
 	b.userData[userId] = data
-	b.userStates[userId] = waitingDescription
+	b.switcher.Next()
 
 	_, err := b.bot.Send(tgbotapi.NewMessage(message.Chat.ID, "Название успешно добавлено! Теперь отправте описание к записи, или команду /done"))
 	if err != nil {
@@ -101,7 +101,7 @@ func (b *Bot) handleWaitingDescription(message *tgbotapi.Message) {
 	data := b.userData[userId]
 	data.Description = message.Text
 	b.userData[userId] = data
-	b.userStates[userId] = waitingImages
+	b.switcher.Next()
 
 	_, err := b.bot.Send(tgbotapi.NewMessage(message.Chat.ID, "Описание успешно добавлено! Теперь отправте фотографии к записи, или команду /done"))
 	if err != nil {
@@ -166,8 +166,7 @@ func (b *Bot) handleWaitingImages(message *tgbotapi.Message) {
 			logrus.Errorf("failed to send message: %v", err)
 			return
 		}
-		b.userStates[userId] = waitingTags
-
+		b.switcher.Next()
 	} else {
 		_, err := b.bot.Send(tgbotapi.NewMessage(message.Chat.ID, "НЕВЕРНОЕ СООБЩЕНИЕ!\nНужно, то отправте изображение, или вызвать команду /done"))
 		if err != nil {
@@ -206,8 +205,7 @@ func (b *Bot) handleWaitingTags(message *tgbotapi.Message) {
 	data.Tags = tags
 
 	b.userData[userId] = data
-	b.userStates[userId] = waitingDeadline
-
+	b.switcher.Next()
 	_, err := b.bot.Send(tgbotapi.NewMessage(message.Chat.ID, "Теги успешно записаны!\nОтправте дату дедлайна записи. Формат:yyyy-mm-dd"))
 	if err != nil {
 		logrus.Errorf("failed to send message: %v", err)
@@ -237,5 +235,5 @@ func (b *Bot) handleWaitingDeadline(message *tgbotapi.Message) {
 	data.Deadline = parsed
 
 	b.userData[userId] = data
-	b.userStates[userId] = ""
+	b.switcher.Next()
 }

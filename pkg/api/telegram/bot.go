@@ -4,6 +4,7 @@ import (
 	"fmt"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"github.com/sirupsen/logrus"
+	"main.go/pkg/api/switchStatus"
 	"main.go/pkg/entity"
 	"main.go/pkg/service/services"
 )
@@ -19,14 +20,24 @@ const (
 type Bot struct {
 	bot        *tgbotapi.BotAPI
 	services   *services.Service
+	switcher   *switchStatus.Switcher
 	userStates map[int64]string
 	userData   map[int64]entity.Homework
 }
 
 func NewBot(bot *tgbotapi.BotAPI, service *services.Service) *Bot {
+	statuses := []string{
+		waitingName,
+		waitingDescription,
+		waitingImages,
+		waitingTags,
+		waitingDeadline,
+	}
+
 	return &Bot{
 		bot:        bot,
 		services:   service,
+		switcher:   switchStatus.NewSwitcher(statuses),
 		userData:   make(map[int64]entity.Homework),
 		userStates: make(map[int64]string),
 	}
@@ -51,7 +62,6 @@ func getCommandMenu() tgbotapi.SetMyCommandsConfig {
 			Description: "Удалить запись",
 		},
 	)
-
 	return menu
 }
 
@@ -65,15 +75,32 @@ func (b *Bot) Start() error {
 	return nil
 }
 
+func (b *Bot) Create(message *tgbotapi.Message) {
+	userId := message.From.ID
+	id, err := b.services.Create(b.userData[userId])
+	if err != nil {
+		logrus.Errorf("failed to save homework: %v", err)
+		_, err = b.bot.Send(tgbotapi.NewMessage(message.Chat.ID, "Ошибка при добавлении"))
+		if err != nil {
+			logrus.Errorf("failed to send message: %v", err)
+		}
+		return
+	}
+
+	_, err = b.bot.Send(tgbotapi.NewMessage(message.Chat.ID, fmt.Sprintf("Запись успешно сконфигурирована! ID: %d", id)))
+	if err != nil {
+		logrus.Errorf("failed to send message: %v", err)
+		return
+	}
+}
+
 func (b *Bot) handleUpdates(updates tgbotapi.UpdatesChannel) {
 	for update := range updates {
 		if update.Message == nil {
 			continue
 		}
 
-		userId := update.Message.From.ID
-
-		switch b.userStates[userId] {
+		switch b.switcher.Current() {
 		case waitingName:
 			b.handleWaitingName(update.Message)
 			break
@@ -88,23 +115,7 @@ func (b *Bot) handleUpdates(updates tgbotapi.UpdatesChannel) {
 			break
 		case waitingDeadline:
 			b.handleWaitingDeadline(update.Message)
-
-			id, err := b.services.Create(b.userData[userId])
-			if err != nil {
-				logrus.Errorf("failed to save homework: %v", err)
-				_, err = b.bot.Send(tgbotapi.NewMessage(update.Message.Chat.ID, "Ошибка при добавлении"))
-				if err != nil {
-					logrus.Errorf("failed to send message: %v", err)
-				}
-
-				break
-			}
-
-			_, err = b.bot.Send(tgbotapi.NewMessage(update.Message.Chat.ID, fmt.Sprintf("Запись успешно сконфигурирована! ID: %d", id)))
-			if err != nil {
-				logrus.Errorf("failed to send message: %v", err)
-				return
-			}
+			b.Create(update.Message)
 			break
 		default:
 			if update.Message.IsCommand() {
