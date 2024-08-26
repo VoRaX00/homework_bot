@@ -100,7 +100,7 @@ func (b *Bot) handleUpdates(updates tgbotapi.UpdatesChannel) {
 			continue
 		}
 
-		switch b.switcher.Current() {
+		switch b.switcher.ISwitcherAdd.Current() {
 		case waitingName:
 			b.handleWaitingName(update.Message)
 			break

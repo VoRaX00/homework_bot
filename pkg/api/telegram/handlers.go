@@ -140,7 +140,7 @@ func (b *Bot) handleWaitingName(message *tgbotapi.Message) {
 	data := b.userData[userId]
 	data.Name = message.Text
 	b.userData[userId] = data
-	b.switcher.Next()
+	b.switcher.ISwitcherAdd.Next()
 
 	_, err := b.bot.Send(tgbotapi.NewMessage(message.Chat.ID, "Название успешно добавлено! Теперь отправте описание к записи, или команду /done"))
 	if err != nil {
@@ -153,7 +153,7 @@ func (b *Bot) handleWaitingDescription(message *tgbotapi.Message) {
 	data := b.userData[userId]
 	data.Description = message.Text
 	b.userData[userId] = data
-	b.switcher.Next()
+	b.switcher.ISwitcherAdd.Next()
 
 	_, err := b.bot.Send(tgbotapi.NewMessage(message.Chat.ID, "Описание успешно добавлено! Теперь отправте фотографии к записи, или команду /done"))
 	if err != nil {
@@ -218,7 +218,7 @@ func (b *Bot) handleWaitingImages(message *tgbotapi.Message) {
 			logrus.Errorf("failed to send message: %v", err)
 			return
 		}
-		b.switcher.Next()
+		b.switcher.ISwitcherAdd.Next()
 	} else {
 		_, err := b.bot.Send(tgbotapi.NewMessage(message.Chat.ID, "НЕВЕРНОЕ СООБЩЕНИЕ!\nНужно, то отправте изображение, или вызвать команду /done"))
 		if err != nil {
@@ -257,7 +257,7 @@ func (b *Bot) handleWaitingTags(message *tgbotapi.Message) {
 	data.Tags = tags
 
 	b.userData[userId] = data
-	b.switcher.Next()
+	b.switcher.ISwitcherAdd.Next()
 	_, err := b.bot.Send(tgbotapi.NewMessage(message.Chat.ID, "Теги успешно записаны!\nОтправте дату дедлайна записи. Формат:yyyy-mm-dd"))
 	if err != nil {
 		logrus.Errorf("failed to send message: %v", err)
@@ -287,5 +287,5 @@ func (b *Bot) handleWaitingDeadline(message *tgbotapi.Message) {
 	data.Deadline = parsed
 
 	b.userData[userId] = data
-	b.switcher.Next()
+	b.switcher.ISwitcherAdd.Next()
 }
