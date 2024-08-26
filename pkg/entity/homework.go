@@ -7,7 +7,7 @@ type Homework struct {
 	Description string    `db:"description"`
 	Images      []string  `db:"images"`
 	Tags        []string  `db:"tags"`
-	CreatedAt   time.Time `db:"created_at"`
+	CreatedAt   time.Time `db:"create_at"`
 	Deadline    time.Time `db:"deadline"`
-	UpdatedAt   time.Time `db:"updated_at"`
+	UpdatedAt   time.Time `db:"update_at"`
 }

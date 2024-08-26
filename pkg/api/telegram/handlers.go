@@ -30,22 +30,19 @@ func (b *Bot) handleCommand(message *tgbotapi.Message) error {
 	case commandStart:
 		msg.Text = "Ты ввёл команду старт"
 		_, err := b.bot.Send(msg)
-
 		return err
 	case commandAdd:
-		msg.Text = "Ты ввёл команду добавить"
+		b.userStates[message.From.ID] = waitingName
+		msg.Text = "Напишите название домашней работы/записи"
 		_, err := b.bot.Send(msg)
-
 		return err
 	case commandUpdate:
 		msg.Text = "Ты ввёл команду обновить"
 		_, err := b.bot.Send(msg)
-
 		return err
 	case commandDelete:
 		msg.Text = "Ты ввёл команду удалить"
 		_, err := b.bot.Send(msg)
-
 		return err
 	default:
 		fmt.Println(message.Command())
@@ -119,7 +116,7 @@ func saveImage(bot *tgbotapi.BotAPI, fileId string) (string, error) {
 	}
 
 	uniqueFileName := uuid.New().String() + filepath.Ext(file.FilePath)
-	savePath := filepath.Join("../media/", uniqueFileName)
+	savePath := filepath.Join("/home/nikita/go/src/homework_bot/media", uniqueFileName)
 
 	fileURL := file.Link(bot.Token)
 	response, err := http.Get(fileURL)
@@ -207,6 +204,8 @@ func (b *Bot) handleWaitingTags(message *tgbotapi.Message) {
 
 	tags := strings.Split(message.Text, ",")
 	data.Tags = tags
+
+	b.userData[userId] = data
 	b.userStates[userId] = waitingDeadline
 
 	_, err := b.bot.Send(tgbotapi.NewMessage(message.Chat.ID, "Теги успешно записаны!\nОтправте дату дедлайна записи. Формат:yyyy-mm-dd"))
@@ -236,16 +235,7 @@ func (b *Bot) handleWaitingDeadline(message *tgbotapi.Message) {
 	}
 
 	data.Deadline = parsed
+
+	b.userData[userId] = data
 	b.userStates[userId] = ""
-
-	id, err := b.services.Create(b.userData[userId])
-	if err != nil {
-		logrus.Errorf("failed to save homework: %v", err)
-	}
-
-	_, err = b.bot.Send(tgbotapi.NewMessage(message.Chat.ID, fmt.Sprintf("Запись успешно сконфигурирована! ID: %d", id)))
-	if err != nil {
-		logrus.Errorf("failed to send message: %v", err)
-		return
-	}
 }

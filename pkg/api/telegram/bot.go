@@ -1,6 +1,7 @@
 package telegram
 
 import (
+	"fmt"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"github.com/sirupsen/logrus"
 	"main.go/pkg/entity"
@@ -83,18 +84,39 @@ func (b *Bot) handleUpdates(updates tgbotapi.UpdatesChannel) {
 			b.handleWaitingImages(update.Message)
 			break
 		case waitingTags:
+			b.handleWaitingTags(update.Message)
+			break
+		case waitingDeadline:
+			b.handleWaitingDeadline(update.Message)
 
-		}
+			id, err := b.services.Create(b.userData[userId])
+			if err != nil {
+				logrus.Errorf("failed to save homework: %v", err)
+				_, err = b.bot.Send(tgbotapi.NewMessage(update.Message.Chat.ID, "Ошибка при добавлении"))
+				if err != nil {
+					logrus.Errorf("failed to send message: %v", err)
+				}
 
-		if update.Message.IsCommand() {
-			if err := b.handleCommand(update.Message); err != nil {
-				logrus.Errorf("[telegram] error when handling command: %s", err.Error())
+				break
 			}
-			continue
-		}
 
-		if err := b.handleMessage(update.Message); err != nil {
-			logrus.Errorf("[telegram] error when handling message: %s", err.Error())
+			_, err = b.bot.Send(tgbotapi.NewMessage(update.Message.Chat.ID, fmt.Sprintf("Запись успешно сконфигурирована! ID: %d", id)))
+			if err != nil {
+				logrus.Errorf("failed to send message: %v", err)
+				return
+			}
+			break
+		default:
+			if update.Message.IsCommand() {
+				if err := b.handleCommand(update.Message); err != nil {
+					logrus.Errorf("[telegram] error when handling command: %s", err.Error())
+				}
+				break
+			}
+
+			if err := b.handleMessage(update.Message); err != nil {
+				logrus.Errorf("[telegram] error when handling message: %s", err.Error())
+			}
 		}
 	}
 }

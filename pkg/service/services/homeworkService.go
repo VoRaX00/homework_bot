@@ -3,6 +3,7 @@ package services
 import (
 	"main.go/pkg/entity"
 	"main.go/pkg/repository/repository"
+	"time"
 )
 
 type HomeworkService struct {
@@ -16,6 +17,8 @@ func NewHomeworkService(repos *repository.Repository) *HomeworkService {
 }
 
 func (s *HomeworkService) Create(homework entity.Homework) (int, error) {
+	homework.CreatedAt = time.Now()
+	homework.UpdatedAt = time.Now()
 	return s.repos.Create(homework)
 }
 

@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"database/sql"
 	"fmt"
 	"github.com/jmoiron/sqlx"
 	"github.com/lib/pq"
@@ -24,17 +25,22 @@ func (r *HomeworkRepository) Create(homework entity.Homework) (int, error) {
 		return -1, err
 	}
 
+	// Вставка данных в таблицу homework
 	query := fmt.Sprintf(`
 		INSERT INTO %s (name, description, images, deadline)
-		VALUES ($1, $2, $3::TEXT[], $4)
+		VALUES ($1, $2, $3, $4)
 		RETURNING id`, config.HomeworkTable)
-	var homeworkId int
-	row := tx.QueryRow(query, homework.Name, homework.Description, homework.Images, homework.Deadline)
 
+	var homeworkId int
+	row := tx.QueryRow(query, homework.Name, homework.Description, pq.Array(homework.Images), homework.Deadline)
+
+	// Если ошибка, выполняем откат транзакции
 	if err = row.Scan(&homeworkId); err != nil {
+		_ = tx.Rollback()
 		return -1, err
 	}
 
+	// Вставка тегов и связывание их с заданием
 	query = fmt.Sprintf(`INSERT INTO %s (name) VALUES ($1)
 					ON CONFLICT (name) DO NOTHING RETURNING id`, config.TagsTable)
 
@@ -42,22 +48,24 @@ func (r *HomeworkRepository) Create(homework entity.Homework) (int, error) {
 	for _, tag := range homework.Tags {
 		var tagId int
 		err = tx.QueryRow(query, tag).Scan(&tagId)
-		if err != nil && err.Error() != "sql: no rows in result set" {
+		if err != nil && err != sql.ErrNoRows { // Исправлено условие на ErrNoRows
+			_ = tx.Rollback()
 			return -1, err
 		}
 
-		if tagId > 0 {
-			tagsId = append(tagsId, tagId)
-		} else {
+		// Если `tagId` пустой, получить его через SELECT
+		if tagId == 0 {
 			getQuery := fmt.Sprintf(`SELECT id FROM %s WHERE name = $1`, config.TagsTable)
 			err = tx.Get(&tagId, getQuery, tag)
 			if err != nil {
+				_ = tx.Rollback()
 				return -1, err
 			}
-			tagsId = append(tagsId, tagId)
 		}
+		tagsId = append(tagsId, tagId)
 	}
 
+	// Связывание тегов с заданием
 	for _, tagId := range tagsId {
 		query = fmt.Sprintf(`INSERT INTO %s (homework_id, tag_id) VALUES ($1, $2)`, config.HomeworkTagsTable)
 		_, err = tx.Exec(query, homeworkId, tagId)
@@ -67,11 +75,66 @@ func (r *HomeworkRepository) Create(homework entity.Homework) (int, error) {
 		}
 	}
 
+	// Завершение транзакции
 	if err = tx.Commit(); err != nil {
 		return -1, err
 	}
 
 	return homeworkId, nil
+
+	//tx, err := r.db.Beginx()
+	//if err != nil {
+	//	return -1, err
+	//}
+	//
+	//query := fmt.Sprintf(`
+	//	INSERT INTO %s (name, description, images, deadline)
+	//	VALUES ($1, $2, $3::TEXT[], $4)
+	//	RETURNING id`, config.HomeworkTable)
+	//var homeworkId int
+	//row := tx.QueryRow(query, homework.Name, homework.Description, homework.Images, homework.Deadline)
+	//
+	//if err = row.Scan(&homeworkId); err != nil {
+	//	return -1, err
+	//}
+	//
+	//query = fmt.Sprintf(`INSERT INTO %s (name) VALUES ($1)
+	//				ON CONFLICT (name) DO NOTHING RETURNING id`, config.TagsTable)
+	//
+	//tagsId := make([]int, 0, len(homework.Tags))
+	//for _, tag := range homework.Tags {
+	//	var tagId int
+	//	err = tx.QueryRow(query, tag).Scan(&tagId)
+	//	if err != nil && err.Error() != "sql: no rows in result set" {
+	//		return -1, err
+	//	}
+	//
+	//	if tagId > 0 {
+	//		tagsId = append(tagsId, tagId)
+	//	} else {
+	//		getQuery := fmt.Sprintf(`SELECT id FROM %s WHERE name = $1`, config.TagsTable)
+	//		err = tx.Get(&tagId, getQuery, tag)
+	//		if err != nil {
+	//			return -1, err
+	//		}
+	//		tagsId = append(tagsId, tagId)
+	//	}
+	//}
+	//
+	//for _, tagId := range tagsId {
+	//	query = fmt.Sprintf(`INSERT INTO %s (homework_id, tag_id) VALUES ($1, $2)`, config.HomeworkTagsTable)
+	//	_, err = tx.Exec(query, homeworkId, tagId)
+	//	if err != nil {
+	//		_ = tx.Rollback()
+	//		return -1, err
+	//	}
+	//}
+	//
+	//if err = tx.Commit(); err != nil {
+	//	return -1, err
+	//}
+	//
+	//return homeworkId, nil
 }
 
 func (r *HomeworkRepository) GetByTags(tags []string) ([]entity.Homework, error) {
