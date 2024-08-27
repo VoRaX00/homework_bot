@@ -18,13 +18,14 @@ import (
 const (
 	commandStart         = "start"
 	commandAdd           = "add"
+	commandUpdate        = "update"
+	commandDelete        = "delete"
+	commandHelp          = "help"
+	commandGetAll        = "getAll"
 	commandGetOnWeek     = "getOnWeek"
 	commandGetOnToday    = "getOnToday"
 	commandGetOnTomorrow = "getOnTomorrow"
 	commandGetOnDate     = "getOnDate"
-	commandUpdate        = "update"
-	commandDelete        = "delete"
-	commandHelp          = "help"
 )
 
 func (b *Bot) cmdStart(message *tgbotapi.Message) error {
@@ -37,6 +38,12 @@ func (b *Bot) cmdStart(message *tgbotapi.Message) error {
 func (b *Bot) cmdAdd(message *tgbotapi.Message) error {
 	b.switcher.ISwitcherAdd.Next()
 	msg := tgbotapi.NewMessage(message.Chat.ID, "Напишите название домашней работы/записи")
+	_, err := b.bot.Send(msg)
+	return err
+}
+
+func (b *Bot) cmdGetAll(message *tgbotapi.Message) error {
+	msg := tgbotapi.NewMessage(message.Chat.ID, "Получение всех домашек")
 	_, err := b.bot.Send(msg)
 	return err
 }
@@ -104,6 +111,18 @@ func (b *Bot) handleCommands(message *tgbotapi.Message) error {
 	case commandAdd:
 		err := b.cmdAdd(message)
 		return err
+	case commandUpdate:
+		err := b.cmdUpdate(message)
+		return err
+	case commandDelete:
+		err := b.cmdDelete(message)
+		return err
+	case commandHelp:
+		err := b.cmdHelp(message)
+		return err
+	case commandGetAll:
+		err := b.cmdGetAll(message)
+		return err
 	case commandGetOnWeek:
 		err := b.cmdGetOnWeek(message)
 		return err
@@ -115,15 +134,6 @@ func (b *Bot) handleCommands(message *tgbotapi.Message) error {
 		return err
 	case commandGetOnDate:
 		err := b.cmdGetOnDate(message)
-		return err
-	case commandUpdate:
-		err := b.cmdUpdate(message)
-		return err
-	case commandDelete:
-		err := b.cmdDelete(message)
-		return err
-	case commandHelp:
-		err := b.cmdHelp(message)
 		return err
 	default:
 		err := b.cmdDefault(message)
