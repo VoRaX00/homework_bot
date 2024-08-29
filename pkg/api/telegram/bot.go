@@ -99,7 +99,6 @@ func (b *Bot) handleUpdates(updates tgbotapi.UpdatesChannel) {
 		if update.Message == nil {
 			continue
 		}
-
 		switch b.switcher.ISwitcherAdd.Current() {
 		case waitingName:
 			b.handleWaitingName(update.Message)
@@ -141,7 +140,24 @@ func (b *Bot) initUpdatesChannel() tgbotapi.UpdatesChannel {
 	return updates
 }
 
+const (
+	channelInformation = 2
+	channelBot         = 5
+)
+
+func (b *Bot) SendInformationChannel(msg tgbotapi.MessageConfig) error {
+	msg.ReplyToMessageID = channelInformation
+	_, err := b.bot.Send(msg)
+	return err
+}
+
 func (b *Bot) SendMessage(msg tgbotapi.MessageConfig) error {
+	_, err := b.bot.Send(msg)
+	return err
+}
+
+func (b *Bot) SendBotChannel(msg tgbotapi.MessageConfig) error {
+	msg.ReplyToMessageID = channelBot
 	_, err := b.bot.Send(msg)
 	return err
 }

@@ -7,6 +7,7 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
+	"strconv"
 	"strings"
 	"time"
 	"unicode"
@@ -15,19 +16,33 @@ import (
 	"github.com/google/uuid"
 )
 
+func isAdmin(chatId int64) bool {
+	adminId, err := strconv.Atoi(os.Getenv("ADMIN4"))
+	if err != nil {
+		return false
+	}
+
+	return int64(adminId) == chatId
+}
+
 func (b *Bot) handleCommands(message *tgbotapi.Message) error {
+	if isAdmin(message.Chat.ID) {
+		switch message.Command() {
+		case commandAdd:
+			err := b.cmdAdd(message)
+			return err
+		case commandUpdate:
+			err := b.cmdUpdate(message)
+			return err
+		case commandDelete:
+			err := b.cmdDelete(message)
+			return err
+		}
+	}
+
 	switch message.Command() {
 	case commandStart:
 		err := b.cmdStart(message)
-		return err
-	case commandAdd:
-		err := b.cmdAdd(message)
-		return err
-	case commandUpdate:
-		err := b.cmdUpdate(message)
-		return err
-	case commandDelete:
-		err := b.cmdDelete(message)
 		return err
 	case commandHelp:
 		err := b.cmdHelp(message)
@@ -64,7 +79,7 @@ func (b *Bot) handleWaitingName(message *tgbotapi.Message) {
 	b.userData[userId] = data
 	b.switcher.ISwitcherAdd.Next()
 
-	_, err := b.bot.Send(tgbotapi.NewMessage(message.Chat.ID, "Название успешно добавлено! Теперь отправте описание к записи, или команду /done"))
+	err := b.SendMessage(tgbotapi.NewMessage(message.Chat.ID, "Название успешно добавлено! Теперь отправте описание к записи, или команду /done"))
 	if err != nil {
 		logrus.Errorf("Error sending message: %v", err)
 	}
@@ -77,7 +92,7 @@ func (b *Bot) handleWaitingDescription(message *tgbotapi.Message) {
 	b.userData[userId] = data
 	b.switcher.ISwitcherAdd.Next()
 
-	_, err := b.bot.Send(tgbotapi.NewMessage(message.Chat.ID, "Описание успешно добавлено! Теперь отправте фотографии к записи, или команду /done"))
+	err := b.SendMessage(tgbotapi.NewMessage(message.Chat.ID, "Описание успешно добавлено! Теперь отправте фотографии к записи, или команду /done"))
 	if err != nil {
 		logrus.Errorf("Error sending message: %v", err)
 	}
@@ -128,12 +143,12 @@ func (b *Bot) handleWaitingImages(message *tgbotapi.Message) {
 		data.Images = append(data.Images, path)
 		b.userData[userId] = data
 
-		_, err = b.bot.Send(tgbotapi.NewMessage(message.Chat.ID, "Отправте изображение, или вызовите команду /done"))
+		err = b.SendMessage(tgbotapi.NewMessage(message.Chat.ID, "Отправте изображение, или вызовите команду /done"))
 		if err != nil {
 			logrus.Errorf("failed to send message: %v", err)
 		}
 	} else if message.Text == "/done" {
-		_, err := b.bot.Send(tgbotapi.NewMessage(message.Chat.ID, "Фотографии успешно загружены\nОтправте мне теги"+
+		err := b.SendMessage(tgbotapi.NewMessage(message.Chat.ID, "Фотографии успешно загружены\nОтправте мне теги"+
 			" к записи одной строкой разделяя слова запятой"))
 
 		if err != nil {
@@ -142,7 +157,7 @@ func (b *Bot) handleWaitingImages(message *tgbotapi.Message) {
 		}
 		b.switcher.ISwitcherAdd.Next()
 	} else {
-		_, err := b.bot.Send(tgbotapi.NewMessage(message.Chat.ID, "НЕВЕРНОЕ СООБЩЕНИЕ!\nНужно, то отправте изображение, или вызвать команду /done"))
+		err := b.SendMessage(tgbotapi.NewMessage(message.Chat.ID, "НЕВЕРНОЕ СООБЩЕНИЕ!\nНужно, то отправте изображение, или вызвать команду /done"))
 		if err != nil {
 			logrus.Errorf("failed to send message: %v", err)
 		}
@@ -165,7 +180,7 @@ func validationDate(message *tgbotapi.Message) bool {
 
 func (b *Bot) handleWaitingTags(message *tgbotapi.Message) {
 	if !validationTags(message) {
-		_, err := b.bot.Send(tgbotapi.NewMessage(message.Chat.ID, "НЕВЕРНОЕ СООБЩЕНИЕ"))
+		err := b.SendMessage(tgbotapi.NewMessage(message.Chat.ID, "НЕВЕРНОЕ СООБЩЕНИЕ"))
 		if err != nil {
 			logrus.Errorf("failed to send message: %v", err)
 		}
@@ -180,7 +195,7 @@ func (b *Bot) handleWaitingTags(message *tgbotapi.Message) {
 
 	b.userData[userId] = data
 	b.switcher.ISwitcherAdd.Next()
-	_, err := b.bot.Send(tgbotapi.NewMessage(message.Chat.ID, "Теги успешно записаны!\nОтправте дату дедлайна записи. Формат:yyyy-mm-dd"))
+	err := b.SendMessage(tgbotapi.NewMessage(message.Chat.ID, "Теги успешно записаны!\nОтправте дату дедлайна записи. Формат:yyyy-mm-dd"))
 	if err != nil {
 		logrus.Errorf("failed to send message: %v", err)
 		return
@@ -189,7 +204,7 @@ func (b *Bot) handleWaitingTags(message *tgbotapi.Message) {
 
 func (b *Bot) handleWaitingDeadline(message *tgbotapi.Message) {
 	if !validationDate(message) {
-		_, err := b.bot.Send(tgbotapi.NewMessage(message.Chat.ID, "НЕВЕРНОЕ СООБЩЕНИЕ"))
+		err := b.SendMessage(tgbotapi.NewMessage(message.Chat.ID, "НЕВЕРНОЕ СООБЩЕНИЕ"))
 		if err != nil {
 			logrus.Errorf("failed to send message: %v", err)
 		}
