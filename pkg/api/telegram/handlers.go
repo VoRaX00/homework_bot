@@ -3,6 +3,7 @@ package telegram
 import (
 	"github.com/sirupsen/logrus"
 	"io"
+	"main.go/pkg/entity"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -79,7 +80,11 @@ func (b *Bot) handleWaitingName(message *tgbotapi.Message) {
 	b.userData[userId] = data
 	b.switcher.ISwitcherAdd.Next()
 
-	err := b.SendMessage(tgbotapi.NewMessage(message.Chat.ID, "Название успешно добавлено! Теперь отправте описание к записи, или команду /done"))
+	msg := entity.MessageToSend{
+		ChatId: message.Chat.ID,
+		Text:   "Название успешно добавлено! Теперь отправте описание к записи, или команду /done",
+	}
+	err := b.SendMessage(msg, defaultChannel)
 	if err != nil {
 		logrus.Errorf("Error sending message: %v", err)
 	}
@@ -92,7 +97,11 @@ func (b *Bot) handleWaitingDescription(message *tgbotapi.Message) {
 	b.userData[userId] = data
 	b.switcher.ISwitcherAdd.Next()
 
-	err := b.SendMessage(tgbotapi.NewMessage(message.Chat.ID, "Описание успешно добавлено! Теперь отправте фотографии к записи, или команду /done"))
+	msg := entity.MessageToSend{
+		ChatId: message.Chat.ID,
+		Text:   "Описание успешно добавлено! Теперь отправте фотографии к записи, или команду /done",
+	}
+	err := b.SendMessage(msg, defaultChannel)
 	if err != nil {
 		logrus.Errorf("Error sending message: %v", err)
 	}
@@ -143,13 +152,20 @@ func (b *Bot) handleWaitingImages(message *tgbotapi.Message) {
 		data.Images = append(data.Images, path)
 		b.userData[userId] = data
 
-		err = b.SendMessage(tgbotapi.NewMessage(message.Chat.ID, "Отправте изображение, или вызовите команду /done"))
+		msg := entity.MessageToSend{
+			ChatId: message.Chat.ID,
+			Text:   "Отправте изображение, или вызовите команду /done",
+		}
+		err = b.SendMessage(msg, defaultChannel)
 		if err != nil {
 			logrus.Errorf("failed to send message: %v", err)
 		}
 	} else if message.Text == "/done" {
-		err := b.SendMessage(tgbotapi.NewMessage(message.Chat.ID, "Фотографии успешно загружены\nОтправте мне теги"+
-			" к записи одной строкой разделяя слова запятой"))
+		msg := entity.MessageToSend{
+			ChatId: message.Chat.ID,
+			Text:   "Фотографии успешно загружены\nОтправте мне теги к записи одной строкой разделяя слова запятой",
+		}
+		err := b.SendMessage(msg, defaultChannel)
 
 		if err != nil {
 			logrus.Errorf("failed to send message: %v", err)
@@ -157,7 +173,11 @@ func (b *Bot) handleWaitingImages(message *tgbotapi.Message) {
 		}
 		b.switcher.ISwitcherAdd.Next()
 	} else {
-		err := b.SendMessage(tgbotapi.NewMessage(message.Chat.ID, "НЕВЕРНОЕ СООБЩЕНИЕ!\nНужно, то отправте изображение, или вызвать команду /done"))
+		msg := entity.MessageToSend{
+			ChatId: message.Chat.ID,
+			Text:   "НЕВЕРНОЕ СООБЩЕНИЕ!\nНужно, то отправте изображение, или вызвать команду /done",
+		}
+		err := b.SendMessage(msg, defaultChannel)
 		if err != nil {
 			logrus.Errorf("failed to send message: %v", err)
 		}
@@ -180,7 +200,11 @@ func validationDate(message *tgbotapi.Message) bool {
 
 func (b *Bot) handleWaitingTags(message *tgbotapi.Message) {
 	if !validationTags(message) {
-		err := b.SendMessage(tgbotapi.NewMessage(message.Chat.ID, "НЕВЕРНОЕ СООБЩЕНИЕ"))
+		msg := entity.MessageToSend{
+			ChatId: message.Chat.ID,
+			Text:   "НЕВЕРНОЕ СООБЩЕНИЕ",
+		}
+		err := b.SendMessage(msg, defaultChannel)
 		if err != nil {
 			logrus.Errorf("failed to send message: %v", err)
 		}
@@ -195,7 +219,12 @@ func (b *Bot) handleWaitingTags(message *tgbotapi.Message) {
 
 	b.userData[userId] = data
 	b.switcher.ISwitcherAdd.Next()
-	err := b.SendMessage(tgbotapi.NewMessage(message.Chat.ID, "Теги успешно записаны!\nОтправте дату дедлайна записи. Формат:yyyy-mm-dd"))
+
+	msg := entity.MessageToSend{
+		ChatId: message.Chat.ID,
+		Text:   "Теги успешно записаны!\nОтправте дату дедлайна записи. Формат:yyyy-mm-dd",
+	}
+	err := b.SendMessage(msg, defaultChannel)
 	if err != nil {
 		logrus.Errorf("failed to send message: %v", err)
 		return
@@ -204,7 +233,11 @@ func (b *Bot) handleWaitingTags(message *tgbotapi.Message) {
 
 func (b *Bot) handleWaitingDeadline(message *tgbotapi.Message) {
 	if !validationDate(message) {
-		err := b.SendMessage(tgbotapi.NewMessage(message.Chat.ID, "НЕВЕРНОЕ СООБЩЕНИЕ"))
+		msg := entity.MessageToSend{
+			ChatId: message.Chat.ID,
+			Text:   "НЕВЕРНОЕ СООБЩЕНИЕ",
+		}
+		err := b.SendMessage(msg, defaultChannel)
 		if err != nil {
 			logrus.Errorf("failed to send message: %v", err)
 		}

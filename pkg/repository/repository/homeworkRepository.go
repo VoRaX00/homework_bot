@@ -7,6 +7,7 @@ import (
 	"github.com/lib/pq"
 	"main.go/pkg/entity"
 	"main.go/pkg/repository/config"
+	"time"
 )
 
 type HomeworkRepository struct {
@@ -154,6 +155,18 @@ func (r *HomeworkRepository) GetAll() ([]entity.HomeworkToGet, error) {
 	return homeworks, err
 }
 
+func (r *HomeworkRepository) GetByToday() ([]entity.HomeworkToGet, error) {
+	return nil, nil
+}
+
+func (r *HomeworkRepository) GetByTomorrow() ([]entity.HomeworkToGet, error) {
+	return nil, nil
+}
+
+func (r *HomeworkRepository) GetByDate(date time.Time) ([]entity.HomeworkToGet, error) {
+	return nil, nil
+}
+
 func (r *HomeworkRepository) Update(homeworkToUpdate entity.HomeworkToUpdate) (entity.Homework, error) {
 	query := "UPDATE " + config.HomeworkTable + " SET "
 	var args []interface{}
@@ -211,4 +224,8 @@ func (r *HomeworkRepository) Update(homeworkToUpdate entity.HomeworkToUpdate) (e
 	}
 
 	return updatedHomework, nil
+}
+
+func (r *HomeworkRepository) Delete(id int) error {
+	return nil
 }

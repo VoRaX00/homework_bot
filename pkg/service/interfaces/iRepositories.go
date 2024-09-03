@@ -2,6 +2,7 @@ package interfaces
 
 import (
 	"main.go/pkg/entity"
+	"time"
 )
 
 type IHomeworkRepository interface {
@@ -11,5 +12,9 @@ type IHomeworkRepository interface {
 	GetByWeek() ([]entity.HomeworkToGet, error)
 	GetById(id int) (entity.HomeworkToGet, error)
 	GetAll() ([]entity.HomeworkToGet, error)
+	GetByToday() ([]entity.HomeworkToGet, error)
+	GetByTomorrow() ([]entity.HomeworkToGet, error)
+	GetByDate(date time.Time) ([]entity.HomeworkToGet, error)
 	Update(homeworkToUpdate entity.HomeworkToUpdate) (entity.Homework, error)
+	Delete(id int) error
 }

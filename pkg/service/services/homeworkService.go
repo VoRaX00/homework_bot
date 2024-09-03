@@ -42,6 +42,22 @@ func (s *HomeworkService) GetByWeek() ([]entity.HomeworkToGet, error) {
 	return s.repos.GetByWeek()
 }
 
+func (s *HomeworkService) GetByToday() ([]entity.HomeworkToGet, error) {
+	return s.repos.GetByToday()
+}
+
+func (s *HomeworkService) GetByTomorrow() ([]entity.HomeworkToGet, error) {
+	return s.repos.GetByTomorrow()
+}
+
+func (s *HomeworkService) GetByDate(date time.Time) ([]entity.HomeworkToGet, error) {
+	return s.repos.GetByDate(date)
+}
+
 func (s *HomeworkService) Update(homeworkToUpdate entity.HomeworkToUpdate) (entity.Homework, error) {
 	return s.repos.Update(homeworkToUpdate)
+}
+
+func (s *HomeworkService) Delete(id int) error {
+	return s.repos.Delete(id)
 }

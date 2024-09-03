@@ -43,52 +43,6 @@ func NewBot(bot *tgbotapi.BotAPI, service *services.Service) *Bot {
 	}
 }
 
-func getCommandMenu() tgbotapi.SetMyCommandsConfig {
-	menu := tgbotapi.NewSetMyCommands(
-		tgbotapi.BotCommand{
-			Command:     commandStart,
-			Description: "Начать общение с ботом",
-		},
-		tgbotapi.BotCommand{
-			Command:     commandAdd,
-			Description: "Добавить новую запись",
-		},
-		tgbotapi.BotCommand{
-			Command:     commandUpdate,
-			Description: "Обновить запись",
-		},
-		tgbotapi.BotCommand{
-			Command:     commandDelete,
-			Description: "Удалить запись",
-		},
-		tgbotapi.BotCommand{
-			Command:     commandGetAll,
-			Description: "Всё дз",
-		},
-		tgbotapi.BotCommand{
-			Command:     commandGetOnDate,
-			Description: "Дз на дату",
-		},
-		tgbotapi.BotCommand{
-			Command:     commandGetOnToday,
-			Description: "Дз на сегодня",
-		},
-		tgbotapi.BotCommand{
-			Command:     commandGetOnTomorrow,
-			Description: "Дз на завтра",
-		},
-		tgbotapi.BotCommand{
-			Command:     commandGetOnWeek,
-			Description: "Дз на неделю",
-		},
-		tgbotapi.BotCommand{
-			Command:     commandHelp,
-			Description: "Инструкция",
-		},
-	)
-	return menu
-}
-
 func (b *Bot) Start() error {
 	_, err := b.bot.Request(getCommandMenu())
 	if err != nil {
@@ -165,23 +119,65 @@ func (b *Bot) initUpdatesChannel() tgbotapi.UpdatesChannel {
 }
 
 const (
+	defaultChannel     = 0
 	channelInformation = 2
 	channelBot         = 5
 )
 
-func (b *Bot) SendInformationChannel(msg tgbotapi.MessageConfig) error {
-	msg.ReplyToMessageID = channelInformation
+func (b *Bot) sendMediaGroup(message entity.MessageToSend, channel int) error {
+	var mediaGroup []interface{}
+
+	for i, photo := range message.Images {
+		inputPhoto := tgbotapi.NewInputMediaPhoto(tgbotapi.FilePath(photo))
+		if i == 0 {
+			inputPhoto.Caption = message.Text
+		}
+		mediaGroup = append(mediaGroup, inputPhoto)
+	}
+
+	mediaGroupCfg := tgbotapi.NewMediaGroup(message.ChatId, mediaGroup)
+	if channel == channelBot {
+		mediaGroupCfg.ReplyToMessageID = channelBot
+	} else if channel == channelInformation {
+		mediaGroupCfg.ReplyToMessageID = channelInformation
+	}
+
+	_, err := b.bot.SendMediaGroup(mediaGroupCfg)
+	return err
+}
+
+func (b *Bot) sendText(message entity.MessageToSend, channel int) error {
+	msg := tgbotapi.NewMessage(message.ChatId, "")
+	msg.Text = message.Text
+
+	if channel == channelBot {
+		msg.ReplyToMessageID = channelBot
+	} else if channel == channelInformation {
+		msg.ReplyToMessageID = channelInformation
+	}
+
 	_, err := b.bot.Send(msg)
 	return err
 }
 
-func (b *Bot) SendMessage(msg tgbotapi.MessageConfig) error {
-	_, err := b.bot.Send(msg)
-	return err
+func (b *Bot) SendHomework(homework entity.HomeworkToGet, chatId int64, channel int) error {
+	text := homeworkToText(homework)
+	msg := entity.MessageToSend{
+		ChatId: chatId,
+		Text:   text,
+		Images: homework.Images,
+	}
+
+	err := b.SendMessage(msg, channel)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
-func (b *Bot) SendBotChannel(msg tgbotapi.MessageConfig) error {
-	msg.ReplyToMessageID = channelBot
-	_, err := b.bot.Send(msg)
-	return err
+func (b *Bot) SendMessage(message entity.MessageToSend, channel int) error {
+	if len(message.Images) > 0 {
+		return b.sendMediaGroup(message, channel)
+	}
+	return b.sendText(message, channel)
 }
