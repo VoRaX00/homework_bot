@@ -156,15 +156,79 @@ func (r *HomeworkRepository) GetAll() ([]entity.HomeworkToGet, error) {
 }
 
 func (r *HomeworkRepository) GetByToday() ([]entity.HomeworkToGet, error) {
-	return nil, nil
+	query := `SELECT h.id, h.name, h.description, h.images, h.create_at, h.deadline, h.update_at, 
+    COALESCE(array_agg(t.name ORDER BY t.name), '{}') AS tags
+	FROM 
+		homework h
+	LEFT JOIN 
+		homeworks_tags ht ON h.id = ht.homework_id
+	LEFT JOIN 
+		tags t ON ht.tag_id = t.id
+	WHERE 
+		h.deadline >= CURRENT_DATE 
+		AND h.deadline < CURRENT_DATE + INTERVAL '1 day'
+	GROUP BY 
+		h.id, h.name, h.description, h.update_at, h.deadline, h.create_at, h.images;
+		`
+
+	var homeworks []entity.HomeworkToGet
+	err := r.db.Select(&homeworks, query)
+
+	return homeworks, err
 }
 
 func (r *HomeworkRepository) GetByTomorrow() ([]entity.HomeworkToGet, error) {
-	return nil, nil
+	query := `SELECT h.id, h.name, h.description, h.images, h.create_at, h.deadline, h.update_at, 
+    COALESCE(array_agg(t.name ORDER BY t.name), '{}') AS tags
+	FROM 
+		homework h
+	LEFT JOIN 
+		homeworks_tags ht ON h.id = ht.homework_id
+	LEFT JOIN 
+		tags t ON ht.tag_id = t.id
+	WHERE 
+		h.deadline >= CURRENT_DATE + INTERVAL '1 day'
+		AND h.deadline < CURRENT_DATE + INTERVAL '2 days'
+	GROUP BY 
+		h.id, h.name, h.description, h.update_at, h.deadline, h.create_at, h.images;
+		`
+
+	var homeworks []entity.HomeworkToGet
+	err := r.db.Select(&homeworks, query)
+
+	return homeworks, err
 }
 
 func (r *HomeworkRepository) GetByDate(date time.Time) ([]entity.HomeworkToGet, error) {
-	return nil, nil
+	formattedDate := date.Format("2006-01-02")
+
+	query := `
+    SELECT 
+        h.id, 
+        h.name, 
+        h.description, 
+        h.images, 
+        h.create_at, 
+        h.deadline, 
+        h.update_at, 
+        COALESCE(array_agg(t.name ORDER BY t.name), '{}') AS tags
+    FROM 
+        homework h
+    LEFT JOIN 
+        homeworks_tags ht ON h.id = ht.homework_id
+    LEFT JOIN 
+        tags t ON ht.tag_id = t.id
+    WHERE 
+        h.deadline >= $1::date 
+        AND h.deadline < ($1::date + INTERVAL '1 day')
+    GROUP BY 
+        h.id, h.name, h.description, h.update_at, h.deadline, h.create_at, h.images;
+    `
+
+	var homeworks []entity.HomeworkToGet
+	err := r.db.Select(&homeworks, query, formattedDate)
+
+	return homeworks, err
 }
 
 func (r *HomeworkRepository) Update(homeworkToUpdate entity.HomeworkToUpdate) (entity.Homework, error) {
@@ -227,5 +291,21 @@ func (r *HomeworkRepository) Update(homeworkToUpdate entity.HomeworkToUpdate) (e
 }
 
 func (r *HomeworkRepository) Delete(id int) error {
-	return nil
+	tx, err := r.db.Begin()
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+
+	_, err = tx.Exec(`DELETE FROM homeworks_tags WHERE homework_id = $1`, id)
+	if err != nil {
+		return err
+	}
+
+	_, err = tx.Exec(`DELETE FROM homework WHERE id = $1`, id)
+	if err != nil {
+		return err
+	}
+
+	return tx.Commit()
 }
