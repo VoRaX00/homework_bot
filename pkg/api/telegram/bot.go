@@ -61,6 +61,30 @@ func getCommandMenu() tgbotapi.SetMyCommandsConfig {
 			Command:     commandDelete,
 			Description: "Удалить запись",
 		},
+		tgbotapi.BotCommand{
+			Command:     commandGetAll,
+			Description: "Всё дз",
+		},
+		tgbotapi.BotCommand{
+			Command:     commandGetOnDate,
+			Description: "Дз на дату",
+		},
+		tgbotapi.BotCommand{
+			Command:     commandGetOnToday,
+			Description: "Дз на сегодня",
+		},
+		tgbotapi.BotCommand{
+			Command:     commandGetOnTomorrow,
+			Description: "Дз на завтра",
+		},
+		tgbotapi.BotCommand{
+			Command:     commandGetOnWeek,
+			Description: "Дз на неделю",
+		},
+		tgbotapi.BotCommand{
+			Command:     commandHelp,
+			Description: "Инструкция",
+		},
 	)
 	return menu
 }

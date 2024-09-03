@@ -11,11 +11,11 @@ const (
 	commandUpdate        = "update"
 	commandDelete        = "delete"
 	commandHelp          = "help"
-	commandGetAll        = "getAll"
-	commandGetOnWeek     = "getOnWeek"
-	commandGetOnToday    = "getOnToday"
-	commandGetOnTomorrow = "getOnTomorrow"
-	commandGetOnDate     = "getOnDate"
+	commandGetAll        = "get_all"
+	commandGetOnWeek     = "get_on_week"
+	commandGetOnToday    = "get_on_today"
+	commandGetOnTomorrow = "get_on_tomorrow"
+	commandGetOnDate     = "get_on_date"
 )
 
 func (b *Bot) cmdStart(message *tgbotapi.Message) error {
@@ -32,16 +32,16 @@ func (b *Bot) cmdAdd(message *tgbotapi.Message) error {
 	return err
 }
 
-func homeworkInMessage(chatId int64, homework entity.Homework) (tgbotapi.MessageConfig, error) {
+func homeworkInMessage(chatId int64, homework entity.HomeworkToGet) (tgbotapi.MessageConfig, error) {
 	msg := tgbotapi.NewMessage(chatId, "")
 
-	msg.Text += homework.Name + "\n"
-	msg.Text += homework.Description
-	msg.Text += homework.Deadline.String() + "\n"
-	for _, i := range homework.Tags {
-		msg.Text += i + ", "
-	}
+	msg.Text += "Название: " + homework.Name + "\n"
+	msg.Text += "Описание: " + homework.Description + "\n"
+	msg.Text += "Дедлайн: " + homework.Deadline.String() + "\n"
 
+	for _, tag := range homework.Tags {
+		msg.Text += "#" + tag + " "
+	}
 	return msg, nil
 }
 

@@ -3,6 +3,7 @@ package entity
 import "time"
 
 type Homework struct {
+	Id          int       `db:"id"`
 	Name        string    `db:"name"`
 	Description string    `db:"description"`
 	Images      []string  `db:"images"`

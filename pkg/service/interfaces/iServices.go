@@ -6,10 +6,10 @@ import (
 
 type IHomeworkService interface {
 	Create(homework entity.Homework) (int, error)
-	GetByTags(tags []string) ([]entity.Homework, error)
-	GetById(id int) (entity.Homework, error)
-	GetAll() ([]entity.Homework, error)
-	GetByName(name string) ([]entity.Homework, error)
-	GetByWeek() ([]entity.Homework, error)
+	GetByTags(tags []string) ([]entity.HomeworkToGet, error)
+	GetById(id int) (entity.HomeworkToGet, error)
+	GetAll() ([]entity.HomeworkToGet, error)
+	GetByName(name string) ([]entity.HomeworkToGet, error)
+	GetByWeek() ([]entity.HomeworkToGet, error)
 	Update(homeworkToUpdate entity.HomeworkToUpdate) (entity.Homework, error)
 }
