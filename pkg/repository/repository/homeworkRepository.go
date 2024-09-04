@@ -2,6 +2,7 @@ package repository
 
 import (
 	"database/sql"
+	"errors"
 	"fmt"
 	"github.com/jmoiron/sqlx"
 	"github.com/lib/pq"
@@ -26,7 +27,6 @@ func (r *HomeworkRepository) Create(homework entity.Homework) (int, error) {
 		return -1, err
 	}
 
-	// Вставка данных в таблицу homework
 	query := fmt.Sprintf(`
 		INSERT INTO %s (name, description, images, deadline)
 		VALUES ($1, $2, $3, $4)
@@ -35,13 +35,11 @@ func (r *HomeworkRepository) Create(homework entity.Homework) (int, error) {
 	var homeworkId int
 	row := tx.QueryRow(query, homework.Name, homework.Description, pq.Array(homework.Images), homework.Deadline)
 
-	// Если ошибка, выполняем откат транзакции
 	if err = row.Scan(&homeworkId); err != nil {
 		_ = tx.Rollback()
 		return -1, err
 	}
 
-	// Вставка тегов и связывание их с заданием
 	query = fmt.Sprintf(`INSERT INTO %s (name) VALUES ($1)
 					ON CONFLICT (name) DO NOTHING RETURNING id`, config.TagsTable)
 
@@ -49,7 +47,7 @@ func (r *HomeworkRepository) Create(homework entity.Homework) (int, error) {
 	for _, tag := range homework.Tags {
 		var tagId int
 		err = tx.QueryRow(query, tag).Scan(&tagId)
-		if err != nil && err != sql.ErrNoRows { // Исправлено условие на ErrNoRows
+		if err != nil && !errors.Is(err, sql.ErrNoRows) {
 			_ = tx.Rollback()
 			return -1, err
 		}
@@ -65,7 +63,6 @@ func (r *HomeworkRepository) Create(homework entity.Homework) (int, error) {
 		tagsId = append(tagsId, tagId)
 	}
 
-	// Связывание тегов с заданием
 	for _, tagId := range tagsId {
 		query = fmt.Sprintf(`INSERT INTO %s (homework_id, tag_id) VALUES ($1, $2)`, config.HomeworkTagsTable)
 		_, err = tx.Exec(query, homeworkId, tagId)

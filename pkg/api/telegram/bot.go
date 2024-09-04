@@ -10,6 +10,7 @@ import (
 )
 
 const (
+	waitingId          = "waitingId"
 	waitingName        = "waitingName"
 	waitingDescription = "waitingDescription"
 	waitingImages      = "waitingImages"
@@ -26,7 +27,7 @@ type Bot struct {
 }
 
 func NewBot(bot *tgbotapi.BotAPI, service *services.Service) *Bot {
-	statuses := []string{
+	statusesAdd := []string{
 		waitingName,
 		waitingDescription,
 		waitingImages,
@@ -34,10 +35,13 @@ func NewBot(bot *tgbotapi.BotAPI, service *services.Service) *Bot {
 		waitingDeadline,
 	}
 
+	statusesUpdate := []string{waitingId}
+	statusesUpdate = append(statusesUpdate, statusesAdd...)
+
 	return &Bot{
 		bot:        bot,
 		services:   service,
-		switcher:   switcher.NewSwitcher(statuses, statuses),
+		switcher:   switcher.NewSwitcher(statusesAdd, statusesUpdate),
 		userData:   make(map[int64]entity.Homework),
 		userStates: make(map[int64]string),
 	}
@@ -77,7 +81,33 @@ func (b *Bot) handleUpdates(updates tgbotapi.UpdatesChannel) {
 		if update.Message == nil {
 			continue
 		}
-		switch b.switcher.ISwitcherAdd.Current() {
+		switch {
+		case b.switcher.ISwitcherUpdate.Current() == waitingId:
+			b.handleWaitingId(update.Message)
+			break
+		case b.switcher.ISwitcherAdd.Current() == waitingName || b.switcher.ISwitcherUpdate.Current() == waitingName:
+			b.handleWaitingName(update.Message)
+			break
+		case b.switcher.ISwitcherAdd.Current() == waitingDescription || b.switcher.ISwitcherUpdate.Current() == waitingDescription:
+			b.handleWaitingDescription(update.Message)
+			break
+		case b.switcher.ISwitcherAdd.Current() == waitingImages || b.switcher.ISwitcherUpdate.Current() == waitingImages:
+			b.handleWaitingImages(update.Message)
+			break
+		case b.switcher.ISwitcherAdd.Current() == waitingTags || b.switcher.ISwitcherUpdate.Current() == waitingTags:
+			b.handleWaitingTags(update.Message)
+			break
+		case b.switcher.ISwitcherAdd.Current() == waitingDeadline || b.switcher.ISwitcherUpdate.Current() == waitingDeadline:
+			b.handleWaitingDeadline(update.Message)
+			b.create(update.Message)
+			break
+		default:
+			break
+		}
+
+		switch b.switcher.ISwitcherUpdate.Current() {
+		case waitingId:
+			break
 		case waitingName:
 			b.handleWaitingName(update.Message)
 			break
@@ -95,16 +125,18 @@ func (b *Bot) handleUpdates(updates tgbotapi.UpdatesChannel) {
 			b.create(update.Message)
 			break
 		default:
-			if update.Message.IsCommand() {
-				if err := b.handleCommands(update.Message); err != nil {
-					logrus.Errorf("[telegram] error when handling command: %s", err.Error())
-				}
-				break
-			}
+			break
+		}
 
-			if err := b.handleMessage(update.Message); err != nil {
-				logrus.Errorf("[telegram] error when handling message: %s", err.Error())
+		if update.Message.IsCommand() {
+			if err := b.handleCommands(update.Message); err != nil {
+				logrus.Errorf("[telegram] error when handling command: %s", err.Error())
 			}
+			break
+		}
+
+		if err := b.handleMessage(update.Message); err != nil {
+			logrus.Errorf("[telegram] error when handling message: %s", err.Error())
 		}
 	}
 }

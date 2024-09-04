@@ -39,3 +39,7 @@ func (s *SwitcherAdd) Previous() string {
 		return s.statuses[s.currentStatus]
 	}
 }
+
+func (s *SwitcherAdd) IsActive() bool {
+	return s.currentStatus >= 0
+}

@@ -127,7 +127,7 @@ func (b *Bot) cmdUpdate(message *tgbotapi.Message) error {
 	b.switcher.ISwitcherUpdate.Next()
 	msg := entity.MessageToSend{
 		ChatId: message.Chat.ID,
-		Text:   "Напишите новое название вашего дз/записи или напишите /done",
+		Text:   "Напишите Id вашей записи",
 	}
 
 	err := b.SendMessage(msg, defaultChannel)

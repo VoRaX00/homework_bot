@@ -1,6 +1,9 @@
 package telegram
 
 import (
+	"github.com/go-playground/validator/v10"
+	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
+	"github.com/google/uuid"
 	"github.com/sirupsen/logrus"
 	"io"
 	"main.go/pkg/entity"
@@ -11,10 +14,6 @@ import (
 	"strconv"
 	"strings"
 	"time"
-	"unicode"
-
-	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
-	"github.com/google/uuid"
 )
 
 func isAdmin(chatId int64) bool {
@@ -78,12 +77,13 @@ func (b *Bot) handleWaitingName(message *tgbotapi.Message) {
 	data := b.userData[userId]
 	data.Name = message.Text
 	b.userData[userId] = data
-	b.switcher.ISwitcherAdd.Next()
+	b.switcher.Next()
 
 	msg := entity.MessageToSend{
 		ChatId: message.Chat.ID,
 		Text:   "Название успешно добавлено! Теперь отправте описание к записи, или команду /done",
 	}
+
 	err := b.SendMessage(msg, defaultChannel)
 	if err != nil {
 		logrus.Errorf("Error sending message: %v", err)
@@ -95,12 +95,13 @@ func (b *Bot) handleWaitingDescription(message *tgbotapi.Message) {
 	data := b.userData[userId]
 	data.Description = message.Text
 	b.userData[userId] = data
-	b.switcher.ISwitcherAdd.Next()
+	b.switcher.Next()
 
 	msg := entity.MessageToSend{
 		ChatId: message.Chat.ID,
 		Text:   "Описание успешно добавлено! Теперь отправте фотографии к записи, или команду /done",
 	}
+
 	err := b.SendMessage(msg, defaultChannel)
 	if err != nil {
 		logrus.Errorf("Error sending message: %v", err)
@@ -156,6 +157,7 @@ func (b *Bot) handleWaitingImages(message *tgbotapi.Message) {
 			ChatId: message.Chat.ID,
 			Text:   "Отправте изображение, или вызовите команду /done",
 		}
+
 		err = b.SendMessage(msg, defaultChannel)
 		if err != nil {
 			logrus.Errorf("failed to send message: %v", err)
@@ -165,13 +167,13 @@ func (b *Bot) handleWaitingImages(message *tgbotapi.Message) {
 			ChatId: message.Chat.ID,
 			Text:   "Фотографии успешно загружены\nОтправте мне теги к записи одной строкой разделяя слова запятой",
 		}
-		err := b.SendMessage(msg, defaultChannel)
 
+		err := b.SendMessage(msg, defaultChannel)
 		if err != nil {
 			logrus.Errorf("failed to send message: %v", err)
 			return
 		}
-		b.switcher.ISwitcherAdd.Next()
+		b.switcher.Next()
 	} else {
 		msg := entity.MessageToSend{
 			ChatId: message.Chat.ID,
@@ -184,22 +186,31 @@ func (b *Bot) handleWaitingImages(message *tgbotapi.Message) {
 	}
 }
 
-func validationTags(message *tgbotapi.Message) bool {
-	for _, r := range message.Text {
-		if !unicode.IsLetter(r) {
-			return false
-		}
-	}
-	return true
+const tagsFormat = `^[a-zA-Z0-9]+(,[a-zA-Z0-9]+)*$`
+
+func validateTags(fl validator.FieldLevel) bool {
+	tags := fl.Field().String()
+	matched, _ := regexp.MatchString(tagsFormat, tags)
+	return matched
 }
 
-func validationDate(message *tgbotapi.Message) bool {
-	re := regexp.MustCompile(`^\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$`)
-	return re.MatchString(message.Text)
+type Tags struct {
+	tags string `validator:"tags"`
 }
 
 func (b *Bot) handleWaitingTags(message *tgbotapi.Message) {
-	if !validationTags(message) {
+	validate := validator.New()
+	err := validate.RegisterValidation("tags", validateTags)
+	if err != nil {
+		logrus.Errorf("failed to validate tags: %v", err)
+		return
+	}
+
+	tags := Tags{
+		tags: message.Text,
+	}
+
+	if err = validate.Struct(tags); err != nil {
 		msg := entity.MessageToSend{
 			ChatId: message.Chat.ID,
 			Text:   "НЕВЕРНОЕ СООБЩЕНИЕ",
@@ -214,17 +225,18 @@ func (b *Bot) handleWaitingTags(message *tgbotapi.Message) {
 	userId := message.From.ID
 	data := b.userData[userId]
 
-	tags := strings.Split(message.Text, ",")
-	data.Tags = tags
+	tagsString := strings.Split(message.Text, ",")
+	data.Tags = tagsString
 
 	b.userData[userId] = data
-	b.switcher.ISwitcherAdd.Next()
+	b.switcher.Next()
 
 	msg := entity.MessageToSend{
 		ChatId: message.Chat.ID,
 		Text:   "Теги успешно записаны!\nОтправте дату дедлайна записи. Формат:yyyy-mm-dd",
 	}
-	err := b.SendMessage(msg, defaultChannel)
+
+	err = b.SendMessage(msg, defaultChannel)
 	if err != nil {
 		logrus.Errorf("failed to send message: %v", err)
 		return
@@ -232,7 +244,9 @@ func (b *Bot) handleWaitingTags(message *tgbotapi.Message) {
 }
 
 func (b *Bot) handleWaitingDeadline(message *tgbotapi.Message) {
-	if !validationDate(message) {
+	validate := validator.New()
+	err := validate.Var(message.Text, "required,datetime")
+	if err != nil {
 		msg := entity.MessageToSend{
 			ChatId: message.Chat.ID,
 			Text:   "НЕВЕРНОЕ СООБЩЕНИЕ",
@@ -257,5 +271,37 @@ func (b *Bot) handleWaitingDeadline(message *tgbotapi.Message) {
 	data.Deadline = parsed
 
 	b.userData[userId] = data
-	b.switcher.ISwitcherAdd.Next()
+	b.switcher.Next()
+}
+
+func (b *Bot) handleWaitingId(message *tgbotapi.Message) {
+	//
+	validate := validator.New()
+
+	err := validate.Var(message.Text, "required,number")
+	if err != nil {
+		logrus.Errorf("failed to validate text: %v", err)
+		return
+	}
+
+	data := b.userData[message.From.ID]
+	data.Id, err = strconv.Atoi(message.Text)
+	if err != nil {
+		logrus.Errorf("failed to parse id: %v", err)
+		return
+	}
+
+	msg := entity.MessageToSend{
+		ChatId: message.Chat.ID,
+		Text:   "Напишите новое название вашего дз/записи или напишите /done",
+	}
+
+	err = b.SendMessage(msg, defaultChannel)
+	if err != nil {
+		logrus.Errorf("failed to send message: %v", err)
+		return
+	}
+
+	b.userData[message.From.ID] = data
+	b.switcher.Next()
 }
