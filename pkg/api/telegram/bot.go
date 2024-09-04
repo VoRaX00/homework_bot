@@ -76,68 +76,48 @@ func (b *Bot) create(message *tgbotapi.Message) {
 	}
 }
 
-func (b *Bot) handleUpdates(updates tgbotapi.UpdatesChannel) {
-	for update := range updates {
-		if update.Message == nil {
-			continue
-		}
-		switch {
-		case b.switcher.ISwitcherUpdate.Current() == waitingId:
-			b.handleWaitingId(update.Message)
-			break
-		case b.switcher.ISwitcherAdd.Current() == waitingName || b.switcher.ISwitcherUpdate.Current() == waitingName:
-			b.handleWaitingName(update.Message)
-			break
-		case b.switcher.ISwitcherAdd.Current() == waitingDescription || b.switcher.ISwitcherUpdate.Current() == waitingDescription:
-			b.handleWaitingDescription(update.Message)
-			break
-		case b.switcher.ISwitcherAdd.Current() == waitingImages || b.switcher.ISwitcherUpdate.Current() == waitingImages:
-			b.handleWaitingImages(update.Message)
-			break
-		case b.switcher.ISwitcherAdd.Current() == waitingTags || b.switcher.ISwitcherUpdate.Current() == waitingTags:
-			b.handleWaitingTags(update.Message)
-			break
-		case b.switcher.ISwitcherAdd.Current() == waitingDeadline || b.switcher.ISwitcherUpdate.Current() == waitingDeadline:
-			b.handleWaitingDeadline(update.Message)
-			b.create(update.Message)
-			break
-		default:
-			break
-		}
-
-		switch b.switcher.ISwitcherUpdate.Current() {
-		case waitingId:
-			break
-		case waitingName:
-			b.handleWaitingName(update.Message)
-			break
-		case waitingDescription:
-			b.handleWaitingDescription(update.Message)
-			break
-		case waitingImages:
-			b.handleWaitingImages(update.Message)
-			break
-		case waitingTags:
-			b.handleWaitingTags(update.Message)
-			break
-		case waitingDeadline:
-			b.handleWaitingDeadline(update.Message)
-			b.create(update.Message)
-			break
-		default:
-			break
-		}
-
+func (b *Bot) handleUpdate(update tgbotapi.Update) {
+	if update.Message == nil {
+		return
+	}
+	switch {
+	case b.switcher.ISwitcherUpdate.Current() == waitingId:
+		b.handleWaitingId(update.Message)
+		break
+	case b.switcher.ISwitcherAdd.Current() == waitingName || b.switcher.ISwitcherUpdate.Current() == waitingName:
+		b.handleWaitingName(update.Message)
+		break
+	case b.switcher.ISwitcherAdd.Current() == waitingDescription || b.switcher.ISwitcherUpdate.Current() == waitingDescription:
+		b.handleWaitingDescription(update.Message)
+		break
+	case b.switcher.ISwitcherAdd.Current() == waitingImages || b.switcher.ISwitcherUpdate.Current() == waitingImages:
+		b.handleWaitingImages(update.Message)
+		break
+	case b.switcher.ISwitcherAdd.Current() == waitingTags || b.switcher.ISwitcherUpdate.Current() == waitingTags:
+		b.handleWaitingTags(update.Message)
+		break
+	case b.switcher.ISwitcherAdd.Current() == waitingDeadline || b.switcher.ISwitcherUpdate.Current() == waitingDeadline:
+		b.handleWaitingDeadline(update.Message)
+		b.create(update.Message)
+		break
+	default:
 		if update.Message.IsCommand() {
 			if err := b.handleCommands(update.Message); err != nil {
 				logrus.Errorf("[telegram] error when handling command: %s", err.Error())
 			}
-			break
 		}
-
 		if err := b.handleMessage(update.Message); err != nil {
 			logrus.Errorf("[telegram] error when handling message: %s", err.Error())
 		}
+		break
+	}
+}
+
+func (b *Bot) handleUpdates(updates tgbotapi.UpdatesChannel) {
+	for update := range updates {
+		go func(update tgbotapi.Update) {
+			b.handleUpdate(update)
+		}(update)
 	}
 }
 

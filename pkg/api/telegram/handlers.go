@@ -275,7 +275,6 @@ func (b *Bot) handleWaitingDeadline(message *tgbotapi.Message) {
 }
 
 func (b *Bot) handleWaitingId(message *tgbotapi.Message) {
-	//
 	validate := validator.New()
 
 	err := validate.Var(message.Text, "required,number")
