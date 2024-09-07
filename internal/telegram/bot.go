@@ -4,9 +4,9 @@ import (
 	"fmt"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"github.com/sirupsen/logrus"
-	"main.go/pkg/api/switcher"
-	"main.go/pkg/entity"
-	"main.go/pkg/service/services"
+	"homework_bot/internal/application/services"
+	"homework_bot/internal/domain/models"
+	"homework_bot/pkg/switcher"
 )
 
 const (
@@ -23,7 +23,7 @@ type Bot struct {
 	services   *services.Service
 	switcher   *switcher.Switcher
 	userStates map[int64]string
-	userData   map[int64]entity.Homework
+	userData   map[int64]models.Homework
 }
 
 func NewBot(bot *tgbotapi.BotAPI, service *services.Service) *Bot {
@@ -42,7 +42,7 @@ func NewBot(bot *tgbotapi.BotAPI, service *services.Service) *Bot {
 		bot:        bot,
 		services:   service,
 		switcher:   switcher.NewSwitcher(statusesAdd, statusesUpdate),
-		userData:   make(map[int64]entity.Homework),
+		userData:   make(map[int64]models.Homework),
 		userStates: make(map[int64]string),
 	}
 }
@@ -136,7 +136,7 @@ const (
 	channelBot         = 5
 )
 
-func (b *Bot) sendMediaGroup(message entity.MessageToSend, channel int) error {
+func (b *Bot) sendMediaGroup(message models.MessageToSend, channel int) error {
 	var mediaGroup []interface{}
 
 	for i, photo := range message.Images {
@@ -158,7 +158,7 @@ func (b *Bot) sendMediaGroup(message entity.MessageToSend, channel int) error {
 	return err
 }
 
-func (b *Bot) sendText(message entity.MessageToSend, channel int) error {
+func (b *Bot) sendText(message models.MessageToSend, channel int) error {
 	msg := tgbotapi.NewMessage(message.ChatId, "")
 	msg.Text = message.Text
 
@@ -172,9 +172,9 @@ func (b *Bot) sendText(message entity.MessageToSend, channel int) error {
 	return err
 }
 
-func (b *Bot) SendHomework(homework entity.HomeworkToGet, chatId int64, channel int) error {
+func (b *Bot) SendHomework(homework models.HomeworkToGet, chatId int64, channel int) error {
 	text := homeworkToText(homework)
-	msg := entity.MessageToSend{
+	msg := models.MessageToSend{
 		ChatId: chatId,
 		Text:   text,
 		Images: homework.Images,
@@ -187,7 +187,7 @@ func (b *Bot) SendHomework(homework entity.HomeworkToGet, chatId int64, channel 
 	return nil
 }
 
-func (b *Bot) SendMessage(message entity.MessageToSend, channel int) error {
+func (b *Bot) SendMessage(message models.MessageToSend, channel int) error {
 	if len(message.Images) > 0 {
 		return b.sendMediaGroup(message, channel)
 	}

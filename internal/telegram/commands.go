@@ -2,7 +2,7 @@ package telegram
 
 import (
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
-	"main.go/pkg/entity"
+	"homework_bot/internal/domain/models"
 	"time"
 )
 
@@ -21,7 +21,7 @@ const (
 
 func (b *Bot) cmdStart(message *tgbotapi.Message) error {
 	textStart := "Привет! Меня зовут Биба, я буду твоим помошником для получения домашек и иных новосотей!"
-	msg := entity.MessageToSend{
+	msg := models.MessageToSend{
 		ChatId: message.Chat.ID,
 		Text:   textStart,
 	}
@@ -32,7 +32,7 @@ func (b *Bot) cmdStart(message *tgbotapi.Message) error {
 
 func (b *Bot) cmdAdd(message *tgbotapi.Message) error {
 	b.switcher.ISwitcherAdd.Next()
-	msg := entity.MessageToSend{
+	msg := models.MessageToSend{
 		ChatId: message.Chat.ID,
 		Text:   "Напишите название домашней работы/записи",
 	}
@@ -41,7 +41,7 @@ func (b *Bot) cmdAdd(message *tgbotapi.Message) error {
 	return err
 }
 
-func homeworkToText(homework entity.HomeworkToGet) string {
+func homeworkToText(homework models.HomeworkToGet) string {
 	text := "Название: " + homework.Name + "\n" + "Описание: " + homework.Description + "\n" + "Дедлайн: " + homework.Deadline.String() + "\n"
 	return text
 }
@@ -125,7 +125,7 @@ func (b *Bot) cmdGetOnDate(message *tgbotapi.Message) error {
 
 func (b *Bot) cmdUpdate(message *tgbotapi.Message) error {
 	b.switcher.ISwitcherUpdate.Next()
-	msg := entity.MessageToSend{
+	msg := models.MessageToSend{
 		ChatId: message.Chat.ID,
 		Text:   "Напишите Id вашей записи",
 	}
@@ -137,7 +137,7 @@ func (b *Bot) cmdUpdate(message *tgbotapi.Message) error {
 func (b *Bot) cmdDelete(message *tgbotapi.Message) error {
 	err := b.services.Delete(1)
 	if err != nil {
-		msg := entity.MessageToSend{
+		msg := models.MessageToSend{
 			ChatId: message.Chat.ID,
 			Text:   "Ошибка удаления",
 		}
@@ -145,7 +145,7 @@ func (b *Bot) cmdDelete(message *tgbotapi.Message) error {
 		return err
 	}
 
-	msg := entity.MessageToSend{
+	msg := models.MessageToSend{
 		ChatId: message.Chat.ID,
 		Text:   "Запись успешно удалена",
 	}
@@ -155,7 +155,7 @@ func (b *Bot) cmdDelete(message *tgbotapi.Message) error {
 
 func (b *Bot) cmdHelp(message *tgbotapi.Message) error {
 	textHelp := "Инструкция пользования Бибой:"
-	msg := entity.MessageToSend{
+	msg := models.MessageToSend{
 		ChatId: message.Chat.ID,
 		Text:   textHelp,
 	}
@@ -164,7 +164,7 @@ func (b *Bot) cmdHelp(message *tgbotapi.Message) error {
 }
 
 func (b *Bot) cmdDefault(message *tgbotapi.Message) error {
-	msg := entity.MessageToSend{
+	msg := models.MessageToSend{
 		ChatId: message.Chat.ID,
 		Text:   "Я не знаком с такой командой :(",
 	}

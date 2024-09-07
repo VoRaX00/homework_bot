@@ -7,10 +7,10 @@ import (
 	_ "github.com/lib/pq"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
-	"main.go/pkg/api/telegram"
-	"main.go/pkg/repository/config"
-	repository "main.go/pkg/repository/repository"
-	"main.go/pkg/service/services"
+	"homework_bot/internal/application/services"
+	"homework_bot/internal/infrastructure/configs"
+	repository "homework_bot/internal/infrastructure/repositories"
+	"homework_bot/internal/telegram"
 	"os"
 )
 
@@ -20,14 +20,14 @@ func main() {
 	logrus.SetFormatter(&logrus.JSONFormatter{})
 
 	if err := initConfig(); err != nil {
-		logrus.Fatalf("init config err: %s", err.Error())
+		logrus.Fatalf("init configs err: %s", err.Error())
 	}
 
 	if err := godotenv.Load(); err != nil {
 		logrus.Fatalf("load .env file err: %s", err.Error())
 	}
 
-	db, err := config.NewPostgresDB(config.Config{
+	db, err := configs.NewPostgresDB(configs.Config{
 		Host:     viper.GetString("db.host"),
 		Port:     viper.GetString("db.port"),
 		Username: viper.GetString("db.username"),

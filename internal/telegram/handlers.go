@@ -1,12 +1,12 @@
 package telegram
 
 import (
-	"github.com/go-playground/validator/v10"
+	validator "github.com/go-playground/validator/v10"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"github.com/google/uuid"
 	"github.com/sirupsen/logrus"
+	"homework_bot/internal/domain/models"
 	"io"
-	"main.go/pkg/entity"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -79,7 +79,7 @@ func (b *Bot) handleWaitingName(message *tgbotapi.Message) {
 	b.userData[userId] = data
 	b.switcher.Next()
 
-	msg := entity.MessageToSend{
+	msg := models.MessageToSend{
 		ChatId: message.Chat.ID,
 		Text:   "Название успешно добавлено! Теперь отправте описание к записи, или команду /done",
 	}
@@ -97,7 +97,7 @@ func (b *Bot) handleWaitingDescription(message *tgbotapi.Message) {
 	b.userData[userId] = data
 	b.switcher.Next()
 
-	msg := entity.MessageToSend{
+	msg := models.MessageToSend{
 		ChatId: message.Chat.ID,
 		Text:   "Описание успешно добавлено! Теперь отправте фотографии к записи, или команду /done",
 	}
@@ -153,7 +153,7 @@ func (b *Bot) handleWaitingImages(message *tgbotapi.Message) {
 		data.Images = append(data.Images, path)
 		b.userData[userId] = data
 
-		msg := entity.MessageToSend{
+		msg := models.MessageToSend{
 			ChatId: message.Chat.ID,
 			Text:   "Отправте изображение, или вызовите команду /done",
 		}
@@ -163,7 +163,7 @@ func (b *Bot) handleWaitingImages(message *tgbotapi.Message) {
 			logrus.Errorf("failed to send message: %v", err)
 		}
 	} else if message.Text == "/done" {
-		msg := entity.MessageToSend{
+		msg := models.MessageToSend{
 			ChatId: message.Chat.ID,
 			Text:   "Фотографии успешно загружены\nОтправте мне теги к записи одной строкой разделяя слова запятой",
 		}
@@ -175,7 +175,7 @@ func (b *Bot) handleWaitingImages(message *tgbotapi.Message) {
 		}
 		b.switcher.Next()
 	} else {
-		msg := entity.MessageToSend{
+		msg := models.MessageToSend{
 			ChatId: message.Chat.ID,
 			Text:   "НЕВЕРНОЕ СООБЩЕНИЕ!\nНужно, то отправте изображение, или вызвать команду /done",
 		}
@@ -211,7 +211,7 @@ func (b *Bot) handleWaitingTags(message *tgbotapi.Message) {
 	}
 
 	if err = validate.Struct(tags); err != nil {
-		msg := entity.MessageToSend{
+		msg := models.MessageToSend{
 			ChatId: message.Chat.ID,
 			Text:   "НЕВЕРНОЕ СООБЩЕНИЕ",
 		}
@@ -231,7 +231,7 @@ func (b *Bot) handleWaitingTags(message *tgbotapi.Message) {
 	b.userData[userId] = data
 	b.switcher.Next()
 
-	msg := entity.MessageToSend{
+	msg := models.MessageToSend{
 		ChatId: message.Chat.ID,
 		Text:   "Теги успешно записаны!\nОтправте дату дедлайна записи. Формат:yyyy-mm-dd",
 	}
@@ -247,7 +247,7 @@ func (b *Bot) handleWaitingDeadline(message *tgbotapi.Message) {
 	validate := validator.New()
 	err := validate.Var(message.Text, "required,datetime")
 	if err != nil {
-		msg := entity.MessageToSend{
+		msg := models.MessageToSend{
 			ChatId: message.Chat.ID,
 			Text:   "НЕВЕРНОЕ СООБЩЕНИЕ",
 		}
@@ -290,7 +290,7 @@ func (b *Bot) handleWaitingId(message *tgbotapi.Message) {
 		return
 	}
 
-	msg := entity.MessageToSend{
+	msg := models.MessageToSend{
 		ChatId: message.Chat.ID,
 		Text:   "Напишите новое название вашего дз/записи или напишите /done",
 	}

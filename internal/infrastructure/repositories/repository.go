@@ -1,8 +1,8 @@
-package repository
+package repositories
 
 import (
 	"github.com/jmoiron/sqlx"
-	"main.go/pkg/service/interfaces"
+	"homework_bot/internal/application/interfaces"
 )
 
 type Repository struct {

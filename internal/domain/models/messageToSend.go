@@ -1,4 +1,4 @@
-package entity
+package models
 
 type MessageToSend struct {
 	ChatId int64
