@@ -1,6 +1,6 @@
 db:
   host: "localhost"
-  port: "5431"
+  port: "5434"
   username: "postgres"
   dbname: "homework_db"
   sslmode: "disable"

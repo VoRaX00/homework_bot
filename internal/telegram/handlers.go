@@ -17,12 +17,19 @@ import (
 )
 
 func isAdmin(chatId int64) bool {
-	adminId, err := strconv.Atoi(os.Getenv("ADMIN4"))
-	if err != nil {
-		return false
+	adminsString := os.Getenv("ADMIN4")
+	adminId := strings.Split(adminsString, ",")
+	for _, item := range adminId {
+		id, err := strconv.ParseInt(item, 10, 64)
+		if err != nil {
+			logrus.Errorf("Error with convert string to int, %s", err.Error())
+		}
+		if id == chatId {
+			return true
+		}
 	}
 
-	return int64(adminId) == chatId
+	return false
 }
 
 func (b *Bot) handleCommands(message *tgbotapi.Message) error {

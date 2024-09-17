@@ -2,8 +2,8 @@ package switcher
 
 type ISwitcher interface {
 	Current() string
-	Next() string
-	Previous() string
+	Next()
+	Previous()
 	IsActive() bool
 }
 
