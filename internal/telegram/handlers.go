@@ -79,7 +79,7 @@ func (b *Bot) handleMessage(message *tgbotapi.Message) error {
 	return nil
 }
 
-func (b *Bot) handleWaitingName(message *tgbotapi.Message) {
+func (b *Bot) handleWaitingName(message *tgbotapi.Message) error {
 	userId := message.From.ID
 	data := b.userData[userId]
 	data.Name = message.Text
@@ -92,12 +92,10 @@ func (b *Bot) handleWaitingName(message *tgbotapi.Message) {
 	}
 
 	err := b.SendMessage(msg, defaultChannel)
-	if err != nil {
-		logrus.Errorf("Error sending message: %v", err)
-	}
+	return err
 }
 
-func (b *Bot) handleWaitingDescription(message *tgbotapi.Message) {
+func (b *Bot) handleWaitingDescription(message *tgbotapi.Message) error {
 	userId := message.From.ID
 	data := b.userData[userId]
 	data.Description = message.Text
@@ -110,9 +108,7 @@ func (b *Bot) handleWaitingDescription(message *tgbotapi.Message) {
 	}
 
 	err := b.SendMessage(msg, defaultChannel)
-	if err != nil {
-		logrus.Errorf("Error sending message: %v", err)
-	}
+	return err
 }
 
 func saveImage(bot *tgbotapi.BotAPI, fileId string) (string, error) {
@@ -122,7 +118,7 @@ func saveImage(bot *tgbotapi.BotAPI, fileId string) (string, error) {
 	}
 
 	uniqueFileName := uuid.New().String() + filepath.Ext(file.FilePath)
-	savePath := filepath.Join("/home/nikita/go/src/homework_bot/media", uniqueFileName)
+	savePath := filepath.Join("/home/nikita/GolandProjects/homework_bot/media", uniqueFileName)
 
 	fileURL := file.Link(bot.Token)
 	response, err := http.Get(fileURL)
@@ -146,7 +142,7 @@ func saveImage(bot *tgbotapi.BotAPI, fileId string) (string, error) {
 	return savePath, nil
 }
 
-func (b *Bot) handleWaitingImages(message *tgbotapi.Message) {
+func (b *Bot) handleWaitingImages(message *tgbotapi.Message) error {
 	userId := message.From.ID
 	data := b.userData[userId]
 
@@ -154,7 +150,7 @@ func (b *Bot) handleWaitingImages(message *tgbotapi.Message) {
 		image := message.Photo[len(message.Photo)-1]
 		path, err := saveImage(b.bot, image.FileID)
 		if err != nil {
-			logrus.Errorf("failed to save the file: %v", err)
+			return err
 		}
 
 		data.Images = append(data.Images, path)
@@ -167,7 +163,7 @@ func (b *Bot) handleWaitingImages(message *tgbotapi.Message) {
 
 		err = b.SendMessage(msg, defaultChannel)
 		if err != nil {
-			logrus.Errorf("failed to send message: %v", err)
+			return err
 		}
 	} else if message.Text == "/done" {
 		msg := models.MessageToSend{
@@ -177,8 +173,7 @@ func (b *Bot) handleWaitingImages(message *tgbotapi.Message) {
 
 		err := b.SendMessage(msg, defaultChannel)
 		if err != nil {
-			logrus.Errorf("failed to send message: %v", err)
-			return
+			return err
 		}
 		b.switcher.Next()
 	} else {
@@ -188,9 +183,10 @@ func (b *Bot) handleWaitingImages(message *tgbotapi.Message) {
 		}
 		err := b.SendMessage(msg, defaultChannel)
 		if err != nil {
-			logrus.Errorf("failed to send message: %v", err)
+			return err
 		}
 	}
+	return nil
 }
 
 const tagsFormat = `^[a-zA-Z0-9]+(,[a-zA-Z0-9]+)*$`
@@ -205,12 +201,11 @@ type Tags struct {
 	tags string `validator:"tags"`
 }
 
-func (b *Bot) handleWaitingTags(message *tgbotapi.Message) {
+func (b *Bot) handleWaitingTags(message *tgbotapi.Message) error {
 	validate := validator.New()
 	err := validate.RegisterValidation("tags", validateTags)
 	if err != nil {
-		logrus.Errorf("failed to validate tags: %v", err)
-		return
+		return err
 	}
 
 	tags := Tags{
@@ -224,9 +219,9 @@ func (b *Bot) handleWaitingTags(message *tgbotapi.Message) {
 		}
 		err := b.SendMessage(msg, defaultChannel)
 		if err != nil {
-			logrus.Errorf("failed to send message: %v", err)
+			return err
 		}
-		return
+
 	}
 
 	userId := message.From.ID
@@ -245,24 +240,33 @@ func (b *Bot) handleWaitingTags(message *tgbotapi.Message) {
 
 	err = b.SendMessage(msg, defaultChannel)
 	if err != nil {
-		logrus.Errorf("failed to send message: %v", err)
-		return
+		return err
 	}
+	return nil
 }
 
-func (b *Bot) handleWaitingDeadline(message *tgbotapi.Message) {
+func (b *Bot) handleWaitingDeadline(message *tgbotapi.Message) error {
 	validate := validator.New()
-	err := validate.Var(message.Text, "required,datetime")
+
+	err := validate.RegisterValidation("customDate", func(fl validator.FieldLevel) bool {
+		dateStr := fl.Field().String()
+		_, err := time.Parse("2006-01-02", dateStr)
+		return err == nil
+	})
+	if err != nil {
+		return err
+	}
+
+	err = validate.Var(message.Text, "required,customDate")
 	if err != nil {
 		msg := models.MessageToSend{
 			ChatId: message.Chat.ID,
-			Text:   "НЕВЕРНОЕ СООБЩЕНИЕ",
+			Text:   "НЕВЕРНОЕ СООБЩЕНИЕ\nВведите ещё раз",
 		}
 		err := b.SendMessage(msg, defaultChannel)
 		if err != nil {
-			logrus.Errorf("failed to send message: %v", err)
+			return err
 		}
-		return
 	}
 
 	userId := message.From.ID
@@ -271,14 +275,14 @@ func (b *Bot) handleWaitingDeadline(message *tgbotapi.Message) {
 	layout := "2006-01-02"
 	parsed, err := time.Parse(layout, message.Text)
 	if err != nil {
-		logrus.Errorf("failed to parse date: %v", err)
-		return
+		return err
 	}
 
 	data.Deadline = parsed
 
 	b.userData[userId] = data
 	b.switcher.Next()
+	return nil
 }
 
 func (b *Bot) handleWaitingId(message *tgbotapi.Message) {

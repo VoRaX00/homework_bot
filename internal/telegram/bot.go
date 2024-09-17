@@ -97,8 +97,10 @@ func (b *Bot) handleUpdate(update tgbotapi.Update) {
 		b.handleWaitingTags(update.Message)
 		break
 	case b.switcher.ISwitcherAdd.Current() == waitingDeadline || b.switcher.ISwitcherUpdate.Current() == waitingDeadline:
-		b.handleWaitingDeadline(update.Message)
-		b.create(update.Message)
+		err := b.handleWaitingDeadline(update.Message)
+		if err == nil {
+			b.create(update.Message)
+		}
 		break
 	default:
 		if update.Message.IsCommand() {

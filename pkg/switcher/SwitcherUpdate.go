@@ -15,10 +15,9 @@ func NewSwitcherUpdate(statuses []string) *SwitcherUpdate {
 func (s *SwitcherUpdate) Next() {
 	if s.currentStatus < len(s.statuses)-1 {
 		s.currentStatus++
-		//return s.statuses[s.currentStatus]
+		return
 	}
 	s.currentStatus = -1
-	//return ""
 }
 
 func (s *SwitcherUpdate) Current() string {

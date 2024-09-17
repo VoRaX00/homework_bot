@@ -15,10 +15,9 @@ func NewSwitcherAdd(statuses []string) *SwitcherAdd {
 func (s *SwitcherAdd) Next() {
 	if s.currentStatus < len(s.statuses)-1 {
 		s.currentStatus++
-		//return s.statuses[s.currentStatus]
+		return
 	}
 	s.currentStatus = -1
-	//return ""
 }
 
 func (s *SwitcherAdd) Current() string {
@@ -32,12 +31,9 @@ func (s *SwitcherAdd) Previous() {
 	switch s.currentStatus {
 	case 0:
 		s.currentStatus = -1
-		//return ""
-	case 1:
-		//return ""
+		break
 	default:
 		s.currentStatus--
-		//return s.statuses[s.currentStatus]
 	}
 }
 
