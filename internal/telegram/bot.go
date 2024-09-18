@@ -85,16 +85,28 @@ func (b *Bot) handleUpdate(update tgbotapi.Update) {
 		b.handleWaitingId(update.Message)
 		break
 	case b.switcher.ISwitcherAdd.Current() == waitingName || b.switcher.ISwitcherUpdate.Current() == waitingName:
-		b.handleWaitingName(update.Message)
+		err := b.handleWaitingName(update.Message)
+		if err != nil {
+			logrus.Errorf("failed to handle waiting name: %v", err)
+		}
 		break
 	case b.switcher.ISwitcherAdd.Current() == waitingDescription || b.switcher.ISwitcherUpdate.Current() == waitingDescription:
-		b.handleWaitingDescription(update.Message)
+		err := b.handleWaitingDescription(update.Message)
+		if err != nil {
+			logrus.Errorf("failed to handle waiting description: %v", err)
+		}
 		break
 	case b.switcher.ISwitcherAdd.Current() == waitingImages || b.switcher.ISwitcherUpdate.Current() == waitingImages:
-		b.handleWaitingImages(update.Message)
+		err := b.handleWaitingImages(update.Message)
+		if err != nil {
+			logrus.Errorf("failed to handle waiting images: %v", err)
+		}
 		break
 	case b.switcher.ISwitcherAdd.Current() == waitingTags || b.switcher.ISwitcherUpdate.Current() == waitingTags:
-		b.handleWaitingTags(update.Message)
+		err := b.handleWaitingTags(update.Message)
+		if err != nil {
+			logrus.Errorf("failed to handle waiting tags: %v", err)
+		}
 		break
 	case b.switcher.ISwitcherAdd.Current() == waitingDeadline || b.switcher.ISwitcherUpdate.Current() == waitingDeadline:
 		err := b.handleWaitingDeadline(update.Message)

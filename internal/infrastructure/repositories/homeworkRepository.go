@@ -107,8 +107,7 @@ func (r *HomeworkRepository) GetByName(name string) ([]models.HomeworkToGet, err
 }
 
 func (r *HomeworkRepository) GetById(id int) (models.HomeworkToGet, error) {
-	query := fmt.Sprintf(`
-		SELECT h.name, h.description, h.image, h.created_at, h.deadline, h.updated_at, ARRAY_AGG(t.name) AS tags
+	query := fmt.Sprintf(`SELECT h.name, h.description, h.image, h.created_at, h.deadline, h.updated_at, ARRAY_AGG(t.name) AS tags
 		FROM %s h 
 		LEFT JOIN %s ht ON h.id = ht.homework_id
 		LEFT JOIN %s t ON ht.tag_id = t.id 
@@ -274,8 +273,7 @@ func (r *HomeworkRepository) Update(homeworkToUpdate models.HomeworkToUpdate) (m
 		}
 
 		for _, tag := range *homeworkToUpdate.Tags {
-			insertQuery := fmt.Sprintf(`
-				INSERT INTO %s (homework_id, tag_id)
+			insertQuery := fmt.Sprintf(`INSERT INTO %s (homework_id, tag_id)
 				VALUES ($1, (SELECT id FROM %s WHERE name = $2));`, configs.HomeworkTagsTable, configs.TagsTable)
 			_, err = r.db.Exec(insertQuery, homeworkToUpdate.Id, tag)
 			if err != nil {

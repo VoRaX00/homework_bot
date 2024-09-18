@@ -3,6 +3,7 @@ package telegram
 import (
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"homework_bot/internal/domain/models"
+	"strconv"
 	"time"
 )
 
@@ -17,6 +18,7 @@ const (
 	commandGetOnToday    = "get_on_today"
 	commandGetOnTomorrow = "get_on_tomorrow"
 	commandGetOnDate     = "get_on_date"
+	commandGetOnId       = "get_on_id"
 )
 
 func (b *Bot) cmdStart(message *tgbotapi.Message) error {
@@ -75,6 +77,21 @@ func (b *Bot) cmdGetOnWeek(message *tgbotapi.Message) error {
 		}
 	}
 	return nil
+}
+
+func (b *Bot) cmdGetOnId(message *tgbotapi.Message) error {
+	id, err := strconv.Atoi(message.Text)
+	if err != nil {
+		return err
+	}
+
+	homework, err := b.services.GetById(id)
+	if err != nil {
+		return err
+	}
+
+	err = b.SendHomework(homework, message.Chat.ID, defaultChannel)
+	return err
 }
 
 func (b *Bot) cmdGetOnToday(message *tgbotapi.Message) error {
