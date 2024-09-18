@@ -57,6 +57,9 @@ func (b *Bot) handleCommands(message *tgbotapi.Message) error {
 	case commandGetAll:
 		err := b.cmdGetAll(message)
 		return err
+	case commandGetOnId:
+		err := b.cmdGetOnId(message)
+		return err
 	case commandGetOnWeek:
 		err := b.cmdGetOnWeek(message)
 		return err

@@ -25,6 +25,10 @@ func getCommandMenu() tgbotapi.SetMyCommandsConfig {
 			Description: "Всё дз",
 		},
 		tgbotapi.BotCommand{
+			Command:     commandGetOnId,
+			Description: "Получить дз по id",
+		},
+		tgbotapi.BotCommand{
 			Command:     commandGetOnDate,
 			Description: "Дз на дату",
 		},
