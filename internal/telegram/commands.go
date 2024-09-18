@@ -1,9 +1,11 @@
 package telegram
 
 import (
+	"fmt"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"homework_bot/internal/domain/models"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -76,11 +78,25 @@ func (b *Bot) cmdGetOnWeek(message *tgbotapi.Message) error {
 			return err
 		}
 	}
+
 	return nil
 }
 
 func (b *Bot) cmdGetOnId(message *tgbotapi.Message) error {
-	id, err := strconv.Atoi(message.Text)
+	words := strings.Split(message.Text, " ")
+	if len(words) != 2 {
+		msg := models.MessageToSend{
+			ChatId: message.Chat.ID,
+			Text:   "НЕВЕРНОЕ СООБЩЕНИЕ! Я ожидаю /command data",
+		}
+		err := b.SendMessage(msg, defaultChannel)
+		if err != nil {
+			return err
+		}
+		return fmt.Errorf("error in get on id")
+	}
+
+	id, err := strconv.Atoi(words[1])
 	if err != nil {
 		return err
 	}
@@ -125,8 +141,25 @@ func (b *Bot) cmdGetOnTomorrow(message *tgbotapi.Message) error {
 }
 
 func (b *Bot) cmdGetOnDate(message *tgbotapi.Message) error {
-	testDate := time.Date(2004, 5, 5, 0, 0, 0, 0, time.UTC)
-	homeworks, err := b.services.GetByDate(testDate)
+	words := strings.Split(message.Text, " ")
+	if len(words) != 2 {
+		msg := models.MessageToSend{
+			ChatId: message.Chat.ID,
+			Text:   "НЕВЕРНОЕ СООБЩЕНИЕ! Я ожидаю /command data",
+		}
+		err := b.SendMessage(msg, defaultChannel)
+		if err != nil {
+			return err
+		}
+		return fmt.Errorf("error in get on date")
+	}
+
+	date, err := time.Parse(time.DateOnly, words[1])
+	if err != nil {
+		return err
+	}
+
+	homeworks, err := b.services.GetByDate(date)
 	if err != nil {
 		return err
 	}
@@ -152,7 +185,25 @@ func (b *Bot) cmdUpdate(message *tgbotapi.Message) error {
 }
 
 func (b *Bot) cmdDelete(message *tgbotapi.Message) error {
-	err := b.services.Delete(1)
+	words := strings.Split(message.Text, " ")
+	if len(words) != 2 {
+		msg := models.MessageToSend{
+			ChatId: message.Chat.ID,
+			Text:   "НЕВЕРНОЕ СООБЩЕНИЕ! Я ожидаю /command data",
+		}
+		err := b.SendMessage(msg, defaultChannel)
+		if err != nil {
+			return err
+		}
+		return fmt.Errorf("error in delete command")
+	}
+
+	id, err := strconv.Atoi(words[1])
+	if err != nil {
+		return err
+	}
+
+	err = b.services.Delete(id)
 	if err != nil {
 		msg := models.MessageToSend{
 			ChatId: message.Chat.ID,
