@@ -94,7 +94,7 @@ func (b *Bot) handleWaitingName(message *tgbotapi.Message) error {
 		Text:   "Название успешно добавлено! Теперь отправте описание к записи, или команду /done",
 	}
 
-	err := b.SendMessage(msg, defaultChannel)
+	err := b.sendMessage(msg, defaultChannel)
 	return err
 }
 
@@ -110,7 +110,7 @@ func (b *Bot) handleWaitingDescription(message *tgbotapi.Message) error {
 		Text:   "Описание успешно добавлено! Теперь отправте фотографии к записи, или команду /done",
 	}
 
-	err := b.SendMessage(msg, defaultChannel)
+	err := b.sendMessage(msg, defaultChannel)
 	return err
 }
 
@@ -164,7 +164,7 @@ func (b *Bot) handleWaitingImages(message *tgbotapi.Message) error {
 			Text:   "Отправте изображение, или вызовите команду /done",
 		}
 
-		err = b.SendMessage(msg, defaultChannel)
+		err = b.sendMessage(msg, defaultChannel)
 		if err != nil {
 			return err
 		}
@@ -174,7 +174,7 @@ func (b *Bot) handleWaitingImages(message *tgbotapi.Message) error {
 			Text:   "Фотографии успешно загружены\nОтправте мне теги к записи одной строкой разделяя слова запятой",
 		}
 
-		err := b.SendMessage(msg, defaultChannel)
+		err := b.sendMessage(msg, defaultChannel)
 		if err != nil {
 			return err
 		}
@@ -184,7 +184,7 @@ func (b *Bot) handleWaitingImages(message *tgbotapi.Message) error {
 			ChatId: message.Chat.ID,
 			Text:   "НЕВЕРНОЕ СООБЩЕНИЕ!\nНужно, то отправте изображение, или вызвать команду /done",
 		}
-		err := b.SendMessage(msg, defaultChannel)
+		err := b.sendMessage(msg, defaultChannel)
 		if err != nil {
 			return err
 		}
@@ -220,7 +220,7 @@ func (b *Bot) handleWaitingTags(message *tgbotapi.Message) error {
 			ChatId: message.Chat.ID,
 			Text:   "НЕВЕРНОЕ СООБЩЕНИЕ",
 		}
-		err := b.SendMessage(msg, defaultChannel)
+		err := b.sendMessage(msg, defaultChannel)
 		if err != nil {
 			return err
 		}
@@ -241,7 +241,7 @@ func (b *Bot) handleWaitingTags(message *tgbotapi.Message) error {
 		Text:   "Теги успешно записаны!\nОтправте дату дедлайна записи. Формат:yyyy-mm-dd",
 	}
 
-	err = b.SendMessage(msg, defaultChannel)
+	err = b.sendMessage(msg, defaultChannel)
 	if err != nil {
 		return err
 	}
@@ -266,7 +266,7 @@ func (b *Bot) handleWaitingDeadline(message *tgbotapi.Message) error {
 			ChatId: message.Chat.ID,
 			Text:   "НЕВЕРНОЕ СООБЩЕНИЕ\nВведите ещё раз",
 		}
-		err := b.SendMessage(msg, defaultChannel)
+		err := b.sendMessage(msg, defaultChannel)
 		if err != nil {
 			return err
 		}
@@ -309,7 +309,7 @@ func (b *Bot) handleWaitingId(message *tgbotapi.Message) {
 		Text:   "Напишите новое название вашего дз/записи или напишите /done",
 	}
 
-	err = b.SendMessage(msg, defaultChannel)
+	err = b.sendMessage(msg, defaultChannel)
 	if err != nil {
 		logrus.Errorf("failed to send message: %v", err)
 		return

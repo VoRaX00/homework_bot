@@ -57,23 +57,15 @@ func (b *Bot) Start() error {
 	return nil
 }
 
-func (b *Bot) create(message *tgbotapi.Message) {
+func (b *Bot) create(message *tgbotapi.Message) error {
 	userId := message.From.ID
 	id, err := b.services.Create(b.userData[userId])
 	if err != nil {
-		logrus.Errorf("failed to save homework: %v", err)
-		_, err = b.bot.Send(tgbotapi.NewMessage(message.Chat.ID, "Ошибка при добавлении"))
-		if err != nil {
-			logrus.Errorf("failed to send message: %v", err)
-		}
-		return
+		return err
 	}
 
 	_, err = b.bot.Send(tgbotapi.NewMessage(message.Chat.ID, fmt.Sprintf("Запись успешно сконфигурирована! ID: %d", id)))
-	if err != nil {
-		logrus.Errorf("failed to send message: %v", err)
-		return
-	}
+	return err
 }
 
 func (b *Bot) handleUpdate(update tgbotapi.Update) {
@@ -111,7 +103,18 @@ func (b *Bot) handleUpdate(update tgbotapi.Update) {
 	case b.switcher.ISwitcherAdd.Current() == waitingDeadline || b.switcher.ISwitcherUpdate.Current() == waitingDeadline:
 		err := b.handleWaitingDeadline(update.Message)
 		if err == nil {
-			b.create(update.Message)
+			err = b.create(update.Message)
+			if err != nil {
+				logrus.Errorf("failed to create record: %v", err)
+				msg := models.MessageToSend{
+					ChatId: update.Message.Chat.ID,
+					Text:   "Не удалось создать запись",
+				}
+				err = b.sendMessage(msg, defaultChannel)
+				if err != nil {
+					logrus.Errorf("failed to send message: %v", err)
+				}
+			}
 		}
 		break
 	default:
@@ -194,16 +197,28 @@ func (b *Bot) sendHomework(homework models.HomeworkToGet, chatId int64, channel 
 		Images: homework.Images,
 	}
 
-	err := b.SendMessage(msg, channel)
+	err := b.sendMessage(msg, channel)
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func (b *Bot) SendMessage(message models.MessageToSend, channel int) error {
+func (b *Bot) sendMessage(message models.MessageToSend, channel int) error {
 	if len(message.Images) > 0 {
 		return b.sendMediaGroup(message, channel)
 	}
 	return b.sendText(message, channel)
+}
+
+func (b *Bot) sendInputError(message *tgbotapi.Message) error {
+	msg := models.MessageToSend{
+		ChatId: message.Chat.ID,
+		Text:   "НЕВЕРНОЕ СООБЩЕНИЕ! Я ожидаю /command data",
+	}
+	err := b.sendMessage(msg, defaultChannel)
+	if err != nil {
+		return err
+	}
+	return fmt.Errorf("error in get on id")
 }
