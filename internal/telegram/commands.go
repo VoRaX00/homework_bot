@@ -58,7 +58,7 @@ func (b *Bot) cmdGetAll(message *tgbotapi.Message) error {
 	}
 
 	for _, homework := range homeworks {
-		err = b.SendHomework(homework, message.Chat.ID, defaultChannel)
+		err = b.sendHomework(homework, message.Chat.ID, defaultChannel)
 		if err != nil {
 			return err
 		}
@@ -73,7 +73,7 @@ func (b *Bot) cmdGetOnWeek(message *tgbotapi.Message) error {
 	}
 
 	for _, homework := range homeworks {
-		err = b.SendHomework(homework, message.Chat.ID, defaultChannel)
+		err = b.sendHomework(homework, message.Chat.ID, defaultChannel)
 		if err != nil {
 			return err
 		}
@@ -106,7 +106,7 @@ func (b *Bot) cmdGetOnId(message *tgbotapi.Message) error {
 		return err
 	}
 
-	err = b.SendHomework(homework, message.Chat.ID, defaultChannel)
+	err = b.sendHomework(homework, message.Chat.ID, defaultChannel)
 	return err
 }
 
@@ -117,7 +117,7 @@ func (b *Bot) cmdGetOnToday(message *tgbotapi.Message) error {
 	}
 
 	for _, homework := range homeworks {
-		err = b.SendHomework(homework, message.Chat.ID, defaultChannel)
+		err = b.sendHomework(homework, message.Chat.ID, defaultChannel)
 		if err != nil {
 			return err
 		}
@@ -132,7 +132,7 @@ func (b *Bot) cmdGetOnTomorrow(message *tgbotapi.Message) error {
 	}
 
 	for _, homework := range homeworks {
-		err = b.SendHomework(homework, message.Chat.ID, defaultChannel)
+		err = b.sendHomework(homework, message.Chat.ID, defaultChannel)
 		if err != nil {
 			return err
 		}
@@ -165,7 +165,7 @@ func (b *Bot) cmdGetOnDate(message *tgbotapi.Message) error {
 	}
 
 	for _, homework := range homeworks {
-		err = b.SendHomework(homework, message.Chat.ID, defaultChannel)
+		err = b.sendHomework(homework, message.Chat.ID, defaultChannel)
 		if err != nil {
 			return err
 		}

@@ -186,7 +186,7 @@ func (b *Bot) sendText(message models.MessageToSend, channel int) error {
 	return err
 }
 
-func (b *Bot) SendHomework(homework models.HomeworkToGet, chatId int64, channel int) error {
+func (b *Bot) sendHomework(homework models.HomeworkToGet, chatId int64, channel int) error {
 	text := homeworkToText(homework)
 	msg := models.MessageToSend{
 		ChatId: chatId,

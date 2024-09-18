@@ -107,12 +107,18 @@ func (r *HomeworkRepository) GetByName(name string) ([]models.HomeworkToGet, err
 }
 
 func (r *HomeworkRepository) GetById(id int) (models.HomeworkToGet, error) {
-	query := fmt.Sprintf(`SELECT h.name, h.description, h.image, h.created_at, h.deadline, h.updated_at, ARRAY_AGG(t.name) AS tags
-		FROM %s h 
-		LEFT JOIN %s ht ON h.id = ht.homework_id
-		LEFT JOIN %s t ON ht.tag_id = t.id 
-		WHERE h.id = $1 
-		GROUP BY h.id;`, configs.HomeworkTable, configs.HomeworkTagsTable, configs.TagsTable)
+	query := `SELECT h.id, h.name, h.description, h.images, h.create_at, h.deadline, h.update_at, 
+        COALESCE(array_agg(t.name ORDER BY t.name), '{}') AS tags
+    FROM 
+        homework h
+    LEFT JOIN 
+        homeworks_tags ht ON h.id = ht.homework_id
+    LEFT JOIN 
+        tags t ON ht.tag_id = t.id
+    WHERE h.id = $1
+    GROUP BY 
+        h.id, h.name, h.description, h.images, h.create_at, h.deadline, h.update_at;
+    `
 
 	var homework models.HomeworkToGet
 	err := r.db.Get(&homework, query, id)
@@ -147,7 +153,6 @@ func (r *HomeworkRepository) GetAll() ([]models.HomeworkToGet, error) {
 
 	var homeworks []models.HomeworkToGet
 	err := r.db.Select(&homeworks, query)
-
 	return homeworks, err
 }
 
