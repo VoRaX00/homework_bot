@@ -1,51 +1,54 @@
 package telegram
 
-import tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
+import (
+	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
+	"homework_bot/internal/bot"
+)
 
 func getCommandMenu() tgbotapi.SetMyCommandsConfig {
 	menu := tgbotapi.NewSetMyCommands(
 		tgbotapi.BotCommand{
-			Command:     commandStart,
+			Command:     bot.CommandStart,
 			Description: "Начать общение с ботом",
 		},
 		tgbotapi.BotCommand{
-			Command:     commandAdd,
+			Command:     bot.CommandAdd,
 			Description: "Добавить новую запись",
 		},
 		tgbotapi.BotCommand{
-			Command:     commandUpdate,
+			Command:     bot.CommandUpdate,
 			Description: "Обновить запись",
 		},
 		tgbotapi.BotCommand{
-			Command:     commandDelete,
+			Command:     bot.CommandDelete,
 			Description: "Удалить запись",
 		},
 		tgbotapi.BotCommand{
-			Command:     commandGetAll,
+			Command:     bot.CommandGetAll,
 			Description: "Всё дз",
 		},
 		tgbotapi.BotCommand{
-			Command:     commandGetOnId,
+			Command:     bot.CommandGetOnId,
 			Description: "Получить дз по id",
 		},
 		tgbotapi.BotCommand{
-			Command:     commandGetOnDate,
+			Command:     bot.CommandGetOnDate,
 			Description: "Дз на дату",
 		},
 		tgbotapi.BotCommand{
-			Command:     commandGetOnToday,
+			Command:     bot.CommandGetOnToday,
 			Description: "Дз на сегодня",
 		},
 		tgbotapi.BotCommand{
-			Command:     commandGetOnTomorrow,
+			Command:     bot.CommandGetOnTomorrow,
 			Description: "Дз на завтра",
 		},
 		tgbotapi.BotCommand{
-			Command:     commandGetOnWeek,
+			Command:     bot.CommandGetOnWeek,
 			Description: "Дз на неделю",
 		},
 		tgbotapi.BotCommand{
-			Command:     commandHelp,
+			Command:     bot.CommandHelp,
 			Description: "Инструкция",
 		},
 	)

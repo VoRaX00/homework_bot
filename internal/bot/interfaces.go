@@ -1,0 +1,50 @@
+package bot
+
+import (
+	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
+	"homework_bot/internal/application/services"
+	"homework_bot/internal/domain/models"
+	"homework_bot/pkg/switcher"
+)
+
+type IBot interface {
+	SendHomework(homework models.HomeworkToGet, chatId int64, channel int) error
+	SendMessage(message models.MessageToSend, channel int) error
+	SendInputError(message *tgbotapi.Message) error
+	GetUserStates() map[int64]string
+	GetUserData() map[int64]models.Homework
+	SetUserStates(userStates map[int64]string)
+	SetUserData(userData map[int64]models.Homework)
+	GetServices() *services.Service
+	GetSwitcher() *switcher.Switcher
+	GetBot() *tgbotapi.BotAPI
+}
+
+const (
+	CommandStart         = "start"
+	CommandAdd           = "add"
+	CommandUpdate        = "update"
+	CommandDelete        = "delete"
+	CommandHelp          = "help"
+	CommandGetAll        = "get_all"
+	CommandGetOnWeek     = "get_on_week"
+	CommandGetOnToday    = "get_on_today"
+	CommandGetOnTomorrow = "get_on_tomorrow"
+	CommandGetOnDate     = "get_on_date"
+	CommandGetOnId       = "get_on_id"
+)
+
+const (
+	WaitingId          = "WaitingId"
+	WaitingName        = "WaitingName"
+	WaitingDescription = "WaitingDescription"
+	WaitingImages      = "WaitingImages"
+	WaitingTags        = "WaitingTags"
+	WaitingDeadline    = "WaitingDeadline"
+)
+
+const (
+	DefaultChannel     = 0
+	ChannelInformation = 2
+	ChannelBot         = 5
+)

@@ -1,10 +1,12 @@
-package telegram
+package handler
 
 import (
-	validator "github.com/go-playground/validator/v10"
+	"fmt"
+	"github.com/go-playground/validator/v10"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"github.com/google/uuid"
-	"github.com/sirupsen/logrus"
+	"homework_bot/internal/bot"
+	"homework_bot/internal/bot/telegram/command"
 	"homework_bot/internal/domain/models"
 	"io"
 	"net/http"
@@ -16,105 +18,89 @@ import (
 	"time"
 )
 
-func isAdmin(chatId int64) bool {
-	adminsString := os.Getenv("ADMIN4")
-	adminId := strings.Split(adminsString, ",")
-	for _, item := range adminId {
-		id, err := strconv.ParseInt(item, 10, 64)
-		if err != nil {
-			logrus.Errorf("Error with convert string to int, %s", err.Error())
-		}
-		if id == chatId {
-			return true
-		}
-	}
+type CommandHandler struct{}
 
-	return false
+func NewCommandHandler() *CommandHandler {
+	return &CommandHandler{}
 }
 
-func (b *Bot) handleCommands(message *tgbotapi.Message) error {
-	if isAdmin(message.Chat.ID) {
-		switch message.Command() {
-		case commandAdd:
-			err := b.cmdAdd(message)
-			return err
-		case commandUpdate:
-			err := b.cmdUpdate(message)
-			return err
-		case commandDelete:
-			err := b.cmdDelete(message)
-			return err
-		}
-	}
+func (h *CommandHandler) Handle(bot bot.IBot, message *tgbotapi.Message) error {
+	factory := command.NewFactory()
+	cmd := factory.GetCommand(message)
 
-	switch message.Command() {
-	case commandStart:
-		err := b.cmdStart(message)
-		return err
-	case commandHelp:
-		err := b.cmdHelp(message)
-		return err
-	case commandGetAll:
-		err := b.cmdGetAll(message)
-		return err
-	case commandGetOnId:
-		err := b.cmdGetOnId(message)
-		return err
-	case commandGetOnWeek:
-		err := b.cmdGetOnWeek(message)
-		return err
-	case commandGetOnToday:
-		err := b.cmdGetOnToday(message)
-		return err
-	case commandGetOnTomorrow:
-		err := b.cmdGetOnTomorrow(message)
-		return err
-	case commandGetOnDate:
-		err := b.cmdGetOnDate(message)
-		return err
-	default:
-		err := b.cmdDefault(message)
+	if err := cmd.Exec(bot, message); err != nil {
 		return err
 	}
-}
-
-func (b *Bot) handleMessage(message *tgbotapi.Message) error {
 	return nil
 }
 
-func (b *Bot) handleWaitingName(message *tgbotapi.Message) error {
+type MessageHandler struct{}
+
+func NewMessageHandler() *MessageHandler {
+	return &MessageHandler{}
+}
+
+func (h *MessageHandler) Handle(bot bot.IBot, message *tgbotapi.Message) error {
+	return nil
+}
+
+type WaitingNameHandler struct{}
+
+func NewWaitingNameHandler() *WaitingNameHandler {
+	return &WaitingNameHandler{}
+}
+
+func (h *WaitingNameHandler) Handle(b bot.IBot, message *tgbotapi.Message) error {
 	userId := message.From.ID
-	data := b.userData[userId]
+	userData := b.GetUserData()
+	data := userData[userId]
 	data.Name = message.Text
-	b.userData[userId] = data
-	b.switcher.Next()
+
+	userData[userId] = data
+	b.SetUserData(userData)
+	b.GetSwitcher().Next()
 
 	msg := models.MessageToSend{
 		ChatId: message.Chat.ID,
 		Text:   "Название успешно добавлено! Теперь отправте описание к записи, или команду /done",
 	}
 
-	err := b.sendMessage(msg, defaultChannel)
+	err := b.SendMessage(msg, bot.DefaultChannel)
 	return err
 }
 
-func (b *Bot) handleWaitingDescription(message *tgbotapi.Message) error {
+type WaitingDescriptionHandler struct{}
+
+func NewWaitingDescriptionHandler() *WaitingDescriptionHandler {
+	return &WaitingDescriptionHandler{}
+}
+
+func (h *WaitingDescriptionHandler) Handle(b bot.IBot, message *tgbotapi.Message) error {
 	userId := message.From.ID
-	data := b.userData[userId]
+	userData := b.GetUserData()
+	data := userData[userId]
 	data.Description = message.Text
-	b.userData[userId] = data
-	b.switcher.Next()
+
+	userData[userId] = data
+	b.SetUserData(userData)
+	b.GetSwitcher().Next()
 
 	msg := models.MessageToSend{
 		ChatId: message.Chat.ID,
 		Text:   "Описание успешно добавлено! Теперь отправте фотографии к записи, или команду /done",
 	}
 
-	err := b.sendMessage(msg, defaultChannel)
+	err := b.SendMessage(msg, bot.DefaultChannel)
 	return err
 }
 
-func saveImage(bot *tgbotapi.BotAPI, fileId string) (string, error) {
+type WaitingImageHandler struct{}
+
+func NewWaitingImageHandler() *WaitingImageHandler {
+	return &WaitingImageHandler{}
+}
+
+func (h *WaitingImageHandler) saveImage(bot *tgbotapi.BotAPI, fileId string) (string, error) {
 	file, err := bot.GetFile(tgbotapi.FileConfig{FileID: fileId})
 	if err != nil {
 		return "", err
@@ -145,26 +131,28 @@ func saveImage(bot *tgbotapi.BotAPI, fileId string) (string, error) {
 	return savePath, nil
 }
 
-func (b *Bot) handleWaitingImages(message *tgbotapi.Message) error {
+func (h *WaitingImageHandler) Handle(b bot.IBot, message *tgbotapi.Message) error {
 	userId := message.From.ID
-	data := b.userData[userId]
+	userData := b.GetUserData()
+	data := userData[userId]
 
 	if len(message.Photo) > 0 {
 		image := message.Photo[len(message.Photo)-1]
-		path, err := saveImage(b.bot, image.FileID)
+		path, err := h.saveImage(b.GetBot(), image.FileID)
 		if err != nil {
 			return err
 		}
 
 		data.Images = append(data.Images, path)
-		b.userData[userId] = data
+		userData[userId] = data
+		b.SetUserData(userData)
 
 		msg := models.MessageToSend{
 			ChatId: message.Chat.ID,
 			Text:   "Отправте изображение, или вызовите команду /done",
 		}
 
-		err = b.sendMessage(msg, defaultChannel)
+		err = b.SendMessage(msg, bot.DefaultChannel)
 		if err != nil {
 			return err
 		}
@@ -174,17 +162,17 @@ func (b *Bot) handleWaitingImages(message *tgbotapi.Message) error {
 			Text:   "Фотографии успешно загружены\nОтправте мне теги к записи одной строкой разделяя слова запятой",
 		}
 
-		err := b.sendMessage(msg, defaultChannel)
+		err := b.SendMessage(msg, bot.DefaultChannel)
 		if err != nil {
 			return err
 		}
-		b.switcher.Next()
+		b.GetSwitcher().Next()
 	} else {
 		msg := models.MessageToSend{
 			ChatId: message.Chat.ID,
 			Text:   "НЕВЕРНОЕ СООБЩЕНИЕ!\nНужно, то отправте изображение, или вызвать команду /done",
 		}
-		err := b.sendMessage(msg, defaultChannel)
+		err := b.SendMessage(msg, bot.DefaultChannel)
 		if err != nil {
 			return err
 		}
@@ -192,21 +180,29 @@ func (b *Bot) handleWaitingImages(message *tgbotapi.Message) error {
 	return nil
 }
 
+type Tags struct {
+	tags string `validator:"tags"`
+}
+
 const tagsFormat = `^[a-zA-Z0-9]+(,[a-zA-Z0-9]+)*$`
 
-func validateTags(fl validator.FieldLevel) bool {
+type WaitingTagsHandler struct {
+	Tags
+}
+
+func (h *WaitingTagsHandler) validateTags(fl validator.FieldLevel) bool {
 	tags := fl.Field().String()
 	matched, _ := regexp.MatchString(tagsFormat, tags)
 	return matched
 }
 
-type Tags struct {
-	tags string `validator:"tags"`
+func NewWaitingTagsHandler() *WaitingTagsHandler {
+	return &WaitingTagsHandler{}
 }
 
-func (b *Bot) handleWaitingTags(message *tgbotapi.Message) error {
+func (h *WaitingTagsHandler) Handle(b bot.IBot, message *tgbotapi.Message) error {
 	validate := validator.New()
-	err := validate.RegisterValidation("tags", validateTags)
+	err := validate.RegisterValidation("tags", h.validateTags)
 	if err != nil {
 		return err
 	}
@@ -220,7 +216,7 @@ func (b *Bot) handleWaitingTags(message *tgbotapi.Message) error {
 			ChatId: message.Chat.ID,
 			Text:   "НЕВЕРНОЕ СООБЩЕНИЕ",
 		}
-		err := b.sendMessage(msg, defaultChannel)
+		err := b.SendMessage(msg, bot.DefaultChannel)
 		if err != nil {
 			return err
 		}
@@ -228,27 +224,35 @@ func (b *Bot) handleWaitingTags(message *tgbotapi.Message) error {
 	}
 
 	userId := message.From.ID
-	data := b.userData[userId]
+	userData := b.GetUserData()
+	data := userData[userId]
 
 	tagsString := strings.Split(message.Text, ",")
 	data.Tags = tagsString
 
-	b.userData[userId] = data
-	b.switcher.Next()
+	userData[userId] = data
+	b.SetUserData(userData)
+	b.GetSwitcher().Next()
 
 	msg := models.MessageToSend{
 		ChatId: message.Chat.ID,
 		Text:   "Теги успешно записаны!\nОтправте дату дедлайна записи. Формат:yyyy-mm-dd",
 	}
 
-	err = b.sendMessage(msg, defaultChannel)
+	err = b.SendMessage(msg, bot.DefaultChannel)
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func (b *Bot) handleWaitingDeadline(message *tgbotapi.Message) error {
+type WaitingDeadlineHandler struct{}
+
+func NewWaitingDeadlineHandler() *WaitingDeadlineHandler {
+	return &WaitingDeadlineHandler{}
+}
+
+func (h *WaitingDeadlineHandler) Handle(b bot.IBot, message *tgbotapi.Message) error {
 	validate := validator.New()
 
 	err := validate.RegisterValidation("customDate", func(fl validator.FieldLevel) bool {
@@ -266,14 +270,16 @@ func (b *Bot) handleWaitingDeadline(message *tgbotapi.Message) error {
 			ChatId: message.Chat.ID,
 			Text:   "НЕВЕРНОЕ СООБЩЕНИЕ\nВведите ещё раз",
 		}
-		err := b.sendMessage(msg, defaultChannel)
+		err := b.SendMessage(msg, bot.DefaultChannel)
 		if err != nil {
 			return err
 		}
 	}
 
 	userId := message.From.ID
-	data := b.userData[userId]
+
+	userData := b.GetUserData()
+	data := userData[userId]
 
 	layout := "2006-01-02"
 	parsed, err := time.Parse(layout, message.Text)
@@ -282,26 +288,33 @@ func (b *Bot) handleWaitingDeadline(message *tgbotapi.Message) error {
 	}
 
 	data.Deadline = parsed
-
-	b.userData[userId] = data
-	b.switcher.Next()
+	userData[userId] = data
+	b.SetUserData(userData)
+	b.GetSwitcher().Next()
 	return nil
 }
 
-func (b *Bot) handleWaitingId(message *tgbotapi.Message) {
+type WaitingIdHandler struct{}
+
+func NewWaitingIdHandler() *WaitingIdHandler {
+	return &WaitingIdHandler{}
+}
+
+func (h *WaitingIdHandler) Handle(b bot.IBot, message *tgbotapi.Message) error {
 	validate := validator.New()
 
 	err := validate.Var(message.Text, "required,number")
 	if err != nil {
-		logrus.Errorf("failed to validate text: %v", err)
-		return
+		err = fmt.Errorf("failed to validate text: %v", err)
+		return err
 	}
 
-	data := b.userData[message.From.ID]
+	userData := b.GetUserData()
+	data := userData[message.From.ID]
 	data.Id, err = strconv.Atoi(message.Text)
 	if err != nil {
-		logrus.Errorf("failed to parse id: %v", err)
-		return
+		err = fmt.Errorf("failed to parse id: %v", err)
+		return err
 	}
 
 	msg := models.MessageToSend{
@@ -309,12 +322,14 @@ func (b *Bot) handleWaitingId(message *tgbotapi.Message) {
 		Text:   "Напишите новое название вашего дз/записи или напишите /done",
 	}
 
-	err = b.sendMessage(msg, defaultChannel)
+	err = b.SendMessage(msg, bot.DefaultChannel)
 	if err != nil {
-		logrus.Errorf("failed to send message: %v", err)
-		return
+		err = fmt.Errorf("failed to send message: %v", err)
+		return err
 	}
 
-	b.userData[message.From.ID] = data
-	b.switcher.Next()
+	userData[message.From.ID] = data
+	b.SetUserData(userData)
+	b.GetSwitcher().Next()
+	return nil
 }

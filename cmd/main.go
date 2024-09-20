@@ -8,9 +8,9 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 	"homework_bot/internal/application/services"
+	"homework_bot/internal/bot/telegram"
 	"homework_bot/internal/infrastructure/configs"
 	repository "homework_bot/internal/infrastructure/repositories"
-	"homework_bot/internal/telegram"
 	"os"
 )
 
