@@ -95,12 +95,18 @@ func (r *HomeworkRepository) GetByTags(tags []string) ([]models.HomeworkToGet, e
 }
 
 func (r *HomeworkRepository) GetByName(name string) ([]models.HomeworkToGet, error) {
-	query := fmt.Sprintf(`SELECT h.name, h.description, h.image, h.created_at, h.deadline, h.updated_at, ARRAY_AGG(t.name) AS %s
-		FROM %s h 
-		LEFT JOIN %s ht 
-		ON h.id = ht.homework_id
-		LEFT JOIN %s t 
-		ON ht.tag_id = t.id WHERE h.name = $1 GROUP BY h.id;`, configs.TagsTable, configs.HomeworkTable, configs.HomeworkTagsTable, configs.TagsTable)
+	query := `SELECT h.id, h.name, h.description, h.images, h.create_at, h.deadline, h.update_at, 
+        COALESCE(array_agg(t.name ORDER BY t.name), '{}') AS tags
+    FROM 
+        homework h
+    LEFT JOIN 
+        homeworks_tags ht ON h.id = ht.homework_id
+    LEFT JOIN 
+        tags t ON ht.tag_id = t.id
+    WHERE h.name = $1
+    GROUP BY 
+        h.id, h.name, h.description, h.images, h.create_at, h.deadline, h.update_at;
+    `
 	var homeworks []models.HomeworkToGet
 	err := r.db.Select(&homeworks, query, name)
 	return homeworks, err

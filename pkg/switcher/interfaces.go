@@ -14,3 +14,7 @@ type ISwitcherAdd interface {
 type ISwitcherUpdate interface {
 	ISwitcher
 }
+
+type ISwitcherGetTags interface {
+	ISwitcher
+}
