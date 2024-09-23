@@ -18,3 +18,9 @@ type IHomeworkService interface {
 	Update(homeworkToUpdate models.HomeworkToUpdate) (models.Homework, error)
 	Delete(id int) error
 }
+
+type IScheduleService interface {
+	Get(date time.Time) (models.Schedule, error)
+	GetOnWeek() ([]models.Schedule, error)
+	Add(date time.Time) error
+}
