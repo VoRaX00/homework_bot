@@ -21,15 +21,6 @@ CREATE TABLE homeworks_tags (
     tag_id INT REFERENCES tags (id) ON DELETE CASCADE NOT NULL
 );
 
-CREATE TABLE schedule (
-    id SERIAL PRIMARY KEY UNIQUE,
-    name TEXT NOT NULL,
-    place TEXT NOT NULL,
-    from_time TIMESTAMP NOT NULL,
-    to_time TIMESTAMP NOT NULL ,
-    teacher TEXT NOT NULL,
-    number_group TEXT NOT NULL
-);
 -- +goose StatementEnd
 
 -- +goose Down

@@ -7,12 +7,10 @@ import (
 
 type Repository struct {
 	interfaces.IHomeworkRepository
-	interfaces.IScheduleRepository
 }
 
 func NewRepository(db *sqlx.DB) *Repository {
 	return &Repository{
 		IHomeworkRepository: NewHomeworkRepository(db),
-		IScheduleRepository: NewScheduleRepository(db),
 	}
 }

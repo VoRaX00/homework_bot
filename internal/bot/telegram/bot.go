@@ -7,14 +7,14 @@ import (
 	"homework_bot/internal/application/services"
 	"homework_bot/internal/bot"
 	"homework_bot/internal/bot/telegram/handler"
-	"homework_bot/internal/domain/models"
+	"homework_bot/internal/domain"
 	"homework_bot/pkg/switcher"
 )
 
 type Bot struct {
 	bot        *tgbotapi.BotAPI
 	userStates map[int64]string
-	userData   map[int64]models.Homework
+	userData   map[int64]domain.Homework
 	services   *services.Service
 	switcher   *switcher.Switcher
 }
@@ -36,7 +36,7 @@ func NewBot(b *tgbotapi.BotAPI, service *services.Service) *Bot {
 		bot:        b,
 		services:   service,
 		switcher:   switcher.NewSwitcher(statusesAdd, statusesUpdate, statusesGetTags),
-		userData:   make(map[int64]models.Homework),
+		userData:   make(map[int64]domain.Homework),
 		userStates: make(map[int64]string),
 	}
 }
@@ -45,14 +45,14 @@ func (b *Bot) GetUserStates() map[int64]string {
 	return b.userStates
 }
 
-func (b *Bot) GetUserData() map[int64]models.Homework {
+func (b *Bot) GetUserData() map[int64]domain.Homework {
 	return b.userData
 }
 
 func (b *Bot) SetUserStates(userStates map[int64]string) {
 	b.userStates = userStates
 }
-func (b *Bot) SetUserData(userData map[int64]models.Homework) {
+func (b *Bot) SetUserData(userData map[int64]domain.Homework) {
 	b.userData = userData
 }
 
@@ -119,7 +119,7 @@ func (b *Bot) initUpdatesChannel() tgbotapi.UpdatesChannel {
 	return updates
 }
 
-func (b *Bot) sendMediaGroup(message models.MessageToSend, channel int) error {
+func (b *Bot) sendMediaGroup(message domain.MessageToSend, channel int) error {
 	var mediaGroup []interface{}
 
 	for i, photo := range message.Images {
@@ -141,7 +141,7 @@ func (b *Bot) sendMediaGroup(message models.MessageToSend, channel int) error {
 	return err
 }
 
-func (b *Bot) sendText(message models.MessageToSend, channel int) error {
+func (b *Bot) sendText(message domain.MessageToSend, channel int) error {
 	msg := tgbotapi.NewMessage(message.ChatId, "")
 	msg.Text = message.Text
 
@@ -155,7 +155,7 @@ func (b *Bot) sendText(message models.MessageToSend, channel int) error {
 	return err
 }
 
-func homeworkToText(homework models.HomeworkToGet) string {
+func homeworkToText(homework domain.HomeworkToGet) string {
 	text := "Название: " + homework.Name +
 		"\n" + "Описание: " + homework.Description + "\n" +
 		"Дедлайн: " + homework.Deadline.String() + "\n"
@@ -165,9 +165,9 @@ func homeworkToText(homework models.HomeworkToGet) string {
 	return text
 }
 
-func (b *Bot) SendHomework(homework models.HomeworkToGet, chatId int64, channel int) error {
+func (b *Bot) SendHomework(homework domain.HomeworkToGet, chatId int64, channel int) error {
 	text := homeworkToText(homework)
-	msg := models.MessageToSend{
+	msg := domain.MessageToSend{
 		ChatId: chatId,
 		Text:   text,
 		Images: homework.Images,
@@ -180,7 +180,7 @@ func (b *Bot) SendHomework(homework models.HomeworkToGet, chatId int64, channel 
 	return nil
 }
 
-func (b *Bot) SendMessage(message models.MessageToSend, channel int) error {
+func (b *Bot) SendMessage(message domain.MessageToSend, channel int) error {
 	if len(message.Images) > 0 {
 		return b.sendMediaGroup(message, channel)
 	}
@@ -188,7 +188,7 @@ func (b *Bot) SendMessage(message models.MessageToSend, channel int) error {
 }
 
 func (b *Bot) SendInputError(message *tgbotapi.Message) error {
-	msg := models.MessageToSend{
+	msg := domain.MessageToSend{
 		ChatId: message.Chat.ID,
 		Text:   "НЕВЕРНОЕ СООБЩЕНИЕ! Я ожидаю /command data",
 	}

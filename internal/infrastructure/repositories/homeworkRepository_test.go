@@ -2,7 +2,7 @@ package repositories
 
 import (
 	"github.com/spf13/viper"
-	"homework_bot/internal/domain/models"
+	"homework_bot/internal/domain"
 	"homework_bot/internal/infrastructure/configs"
 	"os"
 	"testing"
@@ -11,14 +11,14 @@ import (
 
 func TestHomeworkRepository_Create(t *testing.T) {
 	type args struct {
-		homework      models.Homework
+		homework      domain.Homework
 		extendedID    int
 		extendedError error
 	}
 
 	tests := []args{
 		{
-			homework: models.Homework{
+			homework: domain.Homework{
 				Id:          0,
 				Name:        "Test1",
 				Description: "Test1 description",
@@ -30,7 +30,7 @@ func TestHomeworkRepository_Create(t *testing.T) {
 			extendedError: nil,
 		},
 		{
-			homework: models.Homework{
+			homework: domain.Homework{
 				Id:          0,
 				Name:        "Test2",
 				Description: "",

@@ -3,7 +3,7 @@ package command
 import (
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"homework_bot/internal/bot"
-	"homework_bot/internal/domain/models"
+	"homework_bot/internal/domain"
 	"strconv"
 	"strings"
 	"time"
@@ -17,7 +17,7 @@ func NewStartCommand() *StartCommand {
 
 func (c *StartCommand) Exec(b bot.IBot, message *tgbotapi.Message) error {
 	textStart := "Привет! Меня зовут Биба, я буду твоим помошником для получения домашек и иных новосотей!"
-	msg := models.MessageToSend{
+	msg := domain.MessageToSend{
 		ChatId: message.Chat.ID,
 		Text:   textStart,
 	}
@@ -33,7 +33,7 @@ func NewAddCommand() *AddCommand {
 
 func (c *AddCommand) Exec(b bot.IBot, message *tgbotapi.Message) error {
 	b.GetSwitcher().ISwitcherAdd.Next()
-	msg := models.MessageToSend{
+	msg := domain.MessageToSend{
 		ChatId: message.Chat.ID,
 		Text:   "Напишите название домашней работы/записи",
 	}
@@ -50,7 +50,7 @@ func NewUpdateCommand() *UpdateCommand {
 
 func (c *UpdateCommand) Exec(b bot.IBot, message *tgbotapi.Message) error {
 	b.GetSwitcher().ISwitcherUpdate.Next()
-	msg := models.MessageToSend{
+	msg := domain.MessageToSend{
 		ChatId: message.Chat.ID,
 		Text:   "Напишите Id вашей записи",
 	}
@@ -78,7 +78,7 @@ func (c *DeleteCommand) Exec(b bot.IBot, message *tgbotapi.Message) error {
 
 	err = b.GetServices().Delete(id)
 	if err != nil {
-		msg := models.MessageToSend{
+		msg := domain.MessageToSend{
 			ChatId: message.Chat.ID,
 			Text:   "Ошибка удаления",
 		}
@@ -86,7 +86,7 @@ func (c *DeleteCommand) Exec(b bot.IBot, message *tgbotapi.Message) error {
 		return err
 	}
 
-	msg := models.MessageToSend{
+	msg := domain.MessageToSend{
 		ChatId: message.Chat.ID,
 		Text:   "Запись успешно удалена",
 	}
@@ -245,7 +245,7 @@ func NewHelpCommand() *HelpCommand {
 
 func (c *HelpCommand) Exec(b bot.IBot, message *tgbotapi.Message) error {
 	textHelp := "Инструкция пользования Бибой:"
-	msg := models.MessageToSend{
+	msg := domain.MessageToSend{
 		ChatId: message.Chat.ID,
 		Text:   textHelp,
 	}
@@ -260,7 +260,7 @@ func NewDefaultCommand() *DefaultCommand {
 }
 
 func (c *DefaultCommand) Exec(b bot.IBot, message *tgbotapi.Message) error {
-	msg := models.MessageToSend{
+	msg := domain.MessageToSend{
 		ChatId: message.Chat.ID,
 		Text:   "Я не знаком с такой командой :(",
 	}

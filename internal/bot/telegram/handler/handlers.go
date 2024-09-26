@@ -7,7 +7,7 @@ import (
 	"github.com/google/uuid"
 	"homework_bot/internal/bot"
 	"homework_bot/internal/bot/telegram/command"
-	"homework_bot/internal/domain/models"
+	"homework_bot/internal/domain"
 	"io"
 	"net/http"
 	"os"
@@ -60,7 +60,7 @@ func (h *WaitingNameHandler) Handle(b bot.IBot, message *tgbotapi.Message) error
 	b.SetUserData(userData)
 	b.GetSwitcher().Next()
 
-	msg := models.MessageToSend{
+	msg := domain.MessageToSend{
 		ChatId: message.Chat.ID,
 		Text:   "Название успешно добавлено! Теперь отправте описание к записи, или команду /done",
 	}
@@ -85,7 +85,7 @@ func (h *WaitingDescriptionHandler) Handle(b bot.IBot, message *tgbotapi.Message
 	b.SetUserData(userData)
 	b.GetSwitcher().Next()
 
-	msg := models.MessageToSend{
+	msg := domain.MessageToSend{
 		ChatId: message.Chat.ID,
 		Text:   "Описание успешно добавлено! Теперь отправте фотографии к записи, или команду /done",
 	}
@@ -147,7 +147,7 @@ func (h *WaitingImageHandler) Handle(b bot.IBot, message *tgbotapi.Message) erro
 		userData[userId] = data
 		b.SetUserData(userData)
 
-		msg := models.MessageToSend{
+		msg := domain.MessageToSend{
 			ChatId: message.Chat.ID,
 			Text:   "Отправте изображение, или вызовите команду /done",
 		}
@@ -157,7 +157,7 @@ func (h *WaitingImageHandler) Handle(b bot.IBot, message *tgbotapi.Message) erro
 			return err
 		}
 	} else if message.Text == "/done" {
-		msg := models.MessageToSend{
+		msg := domain.MessageToSend{
 			ChatId: message.Chat.ID,
 			Text:   "Фотографии успешно загружены\nОтправте мне теги к записи одной строкой разделяя слова запятой",
 		}
@@ -168,7 +168,7 @@ func (h *WaitingImageHandler) Handle(b bot.IBot, message *tgbotapi.Message) erro
 		}
 		b.GetSwitcher().Next()
 	} else {
-		msg := models.MessageToSend{
+		msg := domain.MessageToSend{
 			ChatId: message.Chat.ID,
 			Text:   "НЕВЕРНОЕ СООБЩЕНИЕ!\nНужно, то отправте изображение, или вызвать команду /done",
 		}
@@ -212,7 +212,7 @@ func (h *WaitingTagsHandler) Handle(b bot.IBot, message *tgbotapi.Message) error
 	}
 
 	if err = validate.Struct(tags); err != nil {
-		msg := models.MessageToSend{
+		msg := domain.MessageToSend{
 			ChatId: message.Chat.ID,
 			Text:   "НЕВЕРНОЕ СООБЩЕНИЕ",
 		}
@@ -234,7 +234,7 @@ func (h *WaitingTagsHandler) Handle(b bot.IBot, message *tgbotapi.Message) error
 	b.SetUserData(userData)
 	b.GetSwitcher().Next()
 
-	msg := models.MessageToSend{
+	msg := domain.MessageToSend{
 		ChatId: message.Chat.ID,
 		Text:   "Теги успешно записаны!\nОтправте дату дедлайна записи. Формат:yyyy-mm-dd",
 	}
@@ -266,7 +266,7 @@ func (h *WaitingDeadlineHandler) Handle(b bot.IBot, message *tgbotapi.Message) e
 
 	err = validate.Var(message.Text, "required,customDate")
 	if err != nil {
-		msg := models.MessageToSend{
+		msg := domain.MessageToSend{
 			ChatId: message.Chat.ID,
 			Text:   "НЕВЕРНОЕ СООБЩЕНИЕ\nВведите ещё раз",
 		}
@@ -317,7 +317,7 @@ func (h *WaitingIdHandler) Handle(b bot.IBot, message *tgbotapi.Message) error {
 		return err
 	}
 
-	msg := models.MessageToSend{
+	msg := domain.MessageToSend{
 		ChatId: message.Chat.ID,
 		Text:   "Напишите новое название вашего дз/записи или напишите /done",
 	}

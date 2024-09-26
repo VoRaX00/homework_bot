@@ -1,4 +1,4 @@
-package models
+package domain
 
 type MessageToSend struct {
 	ChatId int64

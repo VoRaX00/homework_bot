@@ -1,7 +1,7 @@
 package services
 
 import (
-	"homework_bot/internal/domain/models"
+	"homework_bot/internal/domain"
 	"homework_bot/internal/infrastructure/repositories"
 	"time"
 )
@@ -16,45 +16,45 @@ func NewHomeworkService(repos *repositories.Repository) *HomeworkService {
 	}
 }
 
-func (s *HomeworkService) Create(homework models.Homework) (int, error) {
+func (s *HomeworkService) Create(homework domain.Homework) (int, error) {
 	homework.CreatedAt = time.Now()
 	homework.UpdatedAt = time.Now()
 	return s.repos.Create(homework)
 }
 
-func (s *HomeworkService) GetByTags(tags []string) ([]models.HomeworkToGet, error) {
+func (s *HomeworkService) GetByTags(tags []string) ([]domain.HomeworkToGet, error) {
 	return s.repos.GetByTags(tags)
 }
 
-func (s *HomeworkService) GetById(id int) (models.HomeworkToGet, error) {
+func (s *HomeworkService) GetById(id int) (domain.HomeworkToGet, error) {
 	return s.repos.GetById(id)
 }
 
-func (s *HomeworkService) GetAll() ([]models.HomeworkToGet, error) {
+func (s *HomeworkService) GetAll() ([]domain.HomeworkToGet, error) {
 	return s.repos.GetAll()
 }
 
-func (s *HomeworkService) GetByName(name string) ([]models.HomeworkToGet, error) {
+func (s *HomeworkService) GetByName(name string) ([]domain.HomeworkToGet, error) {
 	return s.repos.GetByName(name)
 }
 
-func (s *HomeworkService) GetByWeek() ([]models.HomeworkToGet, error) {
+func (s *HomeworkService) GetByWeek() ([]domain.HomeworkToGet, error) {
 	return s.repos.GetByWeek()
 }
 
-func (s *HomeworkService) GetByToday() ([]models.HomeworkToGet, error) {
+func (s *HomeworkService) GetByToday() ([]domain.HomeworkToGet, error) {
 	return s.repos.GetByToday()
 }
 
-func (s *HomeworkService) GetByTomorrow() ([]models.HomeworkToGet, error) {
+func (s *HomeworkService) GetByTomorrow() ([]domain.HomeworkToGet, error) {
 	return s.repos.GetByTomorrow()
 }
 
-func (s *HomeworkService) GetByDate(date time.Time) ([]models.HomeworkToGet, error) {
+func (s *HomeworkService) GetByDate(date time.Time) ([]domain.HomeworkToGet, error) {
 	return s.repos.GetByDate(date)
 }
 
-func (s *HomeworkService) Update(homeworkToUpdate models.HomeworkToUpdate) (models.Homework, error) {
+func (s *HomeworkService) Update(homeworkToUpdate domain.HomeworkToUpdate) (domain.Homework, error) {
 	return s.repos.Update(homeworkToUpdate)
 }
 

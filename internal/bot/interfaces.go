@@ -3,18 +3,18 @@ package bot
 import (
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"homework_bot/internal/application/services"
-	"homework_bot/internal/domain/models"
+	"homework_bot/internal/domain"
 	"homework_bot/pkg/switcher"
 )
 
 type IBot interface {
-	SendHomework(homework models.HomeworkToGet, chatId int64, channel int) error
-	SendMessage(message models.MessageToSend, channel int) error
+	SendHomework(homework domain.HomeworkToGet, chatId int64, channel int) error
+	SendMessage(message domain.MessageToSend, channel int) error
 	SendInputError(message *tgbotapi.Message) error
 	GetUserStates() map[int64]string
-	GetUserData() map[int64]models.Homework
+	GetUserData() map[int64]domain.Homework
 	SetUserStates(userStates map[int64]string)
-	SetUserData(userData map[int64]models.Homework)
+	SetUserData(userData map[int64]domain.Homework)
 	GetServices() *services.Service
 	GetSwitcher() *switcher.Switcher
 	GetBot() *tgbotapi.BotAPI

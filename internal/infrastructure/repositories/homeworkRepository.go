@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"github.com/jmoiron/sqlx"
 	"github.com/lib/pq"
-	"homework_bot/internal/domain/models"
+	"homework_bot/internal/domain"
 	"homework_bot/internal/infrastructure/configs"
 	"time"
 )
@@ -21,7 +21,7 @@ func NewHomeworkRepository(db *sqlx.DB) *HomeworkRepository {
 	}
 }
 
-func (r *HomeworkRepository) Create(homework models.Homework) (int, error) {
+func (r *HomeworkRepository) Create(homework domain.Homework) (int, error) {
 	tx, err := r.db.Beginx()
 	if err != nil {
 		return -1, err
@@ -79,7 +79,7 @@ func (r *HomeworkRepository) Create(homework models.Homework) (int, error) {
 	return homeworkId, nil
 }
 
-func (r *HomeworkRepository) GetByTags(tags []string) ([]models.HomeworkToGet, error) {
+func (r *HomeworkRepository) GetByTags(tags []string) ([]domain.HomeworkToGet, error) {
 	query := fmt.Sprintf(`SELECT h.* 
 		FROM %s h
 		JOIN %s ht ON h.id = ht.homework_id
@@ -88,13 +88,13 @@ func (r *HomeworkRepository) GetByTags(tags []string) ([]models.HomeworkToGet, e
 		GROUP BY h.id
 		HAVING COUNT(DISTINCT t.name) = $2;`, configs.HomeworkTable, configs.HomeworkTagsTable, configs.TagsTable)
 
-	var homeworks []models.HomeworkToGet
+	var homeworks []domain.HomeworkToGet
 	err := r.db.Select(&homeworks, query, tags, len(tags))
 
 	return homeworks, err
 }
 
-func (r *HomeworkRepository) GetByName(name string) ([]models.HomeworkToGet, error) {
+func (r *HomeworkRepository) GetByName(name string) ([]domain.HomeworkToGet, error) {
 	query := `SELECT h.id, h.name, h.description, h.images, h.create_at, h.deadline, h.update_at, 
         COALESCE(array_agg(t.name ORDER BY t.name), '{}') AS tags
     FROM 
@@ -107,12 +107,12 @@ func (r *HomeworkRepository) GetByName(name string) ([]models.HomeworkToGet, err
     GROUP BY 
         h.id, h.name, h.description, h.images, h.create_at, h.deadline, h.update_at;
     `
-	var homeworks []models.HomeworkToGet
+	var homeworks []domain.HomeworkToGet
 	err := r.db.Select(&homeworks, query, name)
 	return homeworks, err
 }
 
-func (r *HomeworkRepository) GetById(id int) (models.HomeworkToGet, error) {
+func (r *HomeworkRepository) GetById(id int) (domain.HomeworkToGet, error) {
 	query := `SELECT h.id, h.name, h.description, h.images, h.create_at, h.deadline, h.update_at, 
         COALESCE(array_agg(t.name ORDER BY t.name), '{}') AS tags
     FROM 
@@ -126,25 +126,25 @@ func (r *HomeworkRepository) GetById(id int) (models.HomeworkToGet, error) {
         h.id, h.name, h.description, h.images, h.create_at, h.deadline, h.update_at;
     `
 
-	var homework models.HomeworkToGet
+	var homework domain.HomeworkToGet
 	err := r.db.Get(&homework, query, id)
 	return homework, err
 }
 
-func (r *HomeworkRepository) GetByWeek() ([]models.HomeworkToGet, error) {
+func (r *HomeworkRepository) GetByWeek() ([]domain.HomeworkToGet, error) {
 	query := fmt.Sprintf(`
 		SELECT h.name, h.description, h.image, h.created_at, h.deadline, h.updated_at
 		FROM %s h
 		WHERE h.deadline >= DATE_TRUNC('week', NOW())
 		AND h.deadline < DATE_TRUNC('week', NOW()) + INTERVAL '1 week';`, configs.HomeworkTable)
 
-	var homeworks []models.HomeworkToGet
+	var homeworks []domain.HomeworkToGet
 	err := r.db.Select(&homeworks, query)
 
 	return homeworks, err
 }
 
-func (r *HomeworkRepository) GetAll() ([]models.HomeworkToGet, error) {
+func (r *HomeworkRepository) GetAll() ([]domain.HomeworkToGet, error) {
 	query := `SELECT h.id, h.name, h.description, h.images, h.create_at, h.deadline, h.update_at, 
         COALESCE(array_agg(t.name ORDER BY t.name), '{}') AS tags
     FROM 
@@ -157,12 +157,12 @@ func (r *HomeworkRepository) GetAll() ([]models.HomeworkToGet, error) {
         h.id, h.name, h.description, h.images, h.create_at, h.deadline, h.update_at;
     `
 
-	var homeworks []models.HomeworkToGet
+	var homeworks []domain.HomeworkToGet
 	err := r.db.Select(&homeworks, query)
 	return homeworks, err
 }
 
-func (r *HomeworkRepository) GetByToday() ([]models.HomeworkToGet, error) {
+func (r *HomeworkRepository) GetByToday() ([]domain.HomeworkToGet, error) {
 	query := `SELECT h.id, h.name, h.description, h.images, h.create_at, h.deadline, h.update_at, 
     COALESCE(array_agg(t.name ORDER BY t.name), '{}') AS tags
 	FROM 
@@ -178,13 +178,13 @@ func (r *HomeworkRepository) GetByToday() ([]models.HomeworkToGet, error) {
 		h.id, h.name, h.description, h.update_at, h.deadline, h.create_at, h.images;
 		`
 
-	var homeworks []models.HomeworkToGet
+	var homeworks []domain.HomeworkToGet
 	err := r.db.Select(&homeworks, query)
 
 	return homeworks, err
 }
 
-func (r *HomeworkRepository) GetByTomorrow() ([]models.HomeworkToGet, error) {
+func (r *HomeworkRepository) GetByTomorrow() ([]domain.HomeworkToGet, error) {
 	query := `SELECT h.id, h.name, h.description, h.images, h.create_at, h.deadline, h.update_at, 
     COALESCE(array_agg(t.name ORDER BY t.name), '{}') AS tags
 	FROM 
@@ -200,13 +200,13 @@ func (r *HomeworkRepository) GetByTomorrow() ([]models.HomeworkToGet, error) {
 		h.id, h.name, h.description, h.update_at, h.deadline, h.create_at, h.images;
 		`
 
-	var homeworks []models.HomeworkToGet
+	var homeworks []domain.HomeworkToGet
 	err := r.db.Select(&homeworks, query)
 
 	return homeworks, err
 }
 
-func (r *HomeworkRepository) GetByDate(date time.Time) ([]models.HomeworkToGet, error) {
+func (r *HomeworkRepository) GetByDate(date time.Time) ([]domain.HomeworkToGet, error) {
 	formattedDate := date.Format("2006-01-02")
 
 	query := `
@@ -232,13 +232,13 @@ func (r *HomeworkRepository) GetByDate(date time.Time) ([]models.HomeworkToGet, 
         h.id, h.name, h.description, h.update_at, h.deadline, h.create_at, h.images;
     `
 
-	var homeworks []models.HomeworkToGet
+	var homeworks []domain.HomeworkToGet
 	err := r.db.Select(&homeworks, query, formattedDate)
 
 	return homeworks, err
 }
 
-func (r *HomeworkRepository) Update(homeworkToUpdate models.HomeworkToUpdate) (models.Homework, error) {
+func (r *HomeworkRepository) Update(homeworkToUpdate domain.HomeworkToUpdate) (domain.Homework, error) {
 	query := "UPDATE " + configs.HomeworkTable + " SET "
 	var args []interface{}
 	argIndex := 1
@@ -270,17 +270,17 @@ func (r *HomeworkRepository) Update(homeworkToUpdate models.HomeworkToUpdate) (m
 	query = query[:len(query)-2] + fmt.Sprintf(" WHERE id = $%d RETURNING *;", argIndex)
 	args = append(args, homeworkToUpdate.Id)
 
-	var updatedHomework models.Homework
+	var updatedHomework domain.Homework
 	err := r.db.Get(&updatedHomework, query, args...)
 	if err != nil {
-		return models.Homework{}, err
+		return domain.Homework{}, err
 	}
 
 	if homeworkToUpdate.Tags != nil {
 		deleteQuery := fmt.Sprintf("DELETE FROM %s WHERE homework_id = $1;", configs.HomeworkTagsTable)
 		_, err = r.db.Exec(deleteQuery, homeworkToUpdate.Id)
 		if err != nil {
-			return models.Homework{}, err
+			return domain.Homework{}, err
 		}
 
 		for _, tag := range *homeworkToUpdate.Tags {
@@ -288,7 +288,7 @@ func (r *HomeworkRepository) Update(homeworkToUpdate models.HomeworkToUpdate) (m
 				VALUES ($1, (SELECT id FROM %s WHERE name = $2));`, configs.HomeworkTagsTable, configs.TagsTable)
 			_, err = r.db.Exec(insertQuery, homeworkToUpdate.Id, tag)
 			if err != nil {
-				return models.Homework{}, err
+				return domain.Homework{}, err
 			}
 		}
 	}

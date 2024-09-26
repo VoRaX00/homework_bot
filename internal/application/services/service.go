@@ -13,6 +13,6 @@ type Service struct {
 func NewService(repos *repositories.Repository) *Service {
 	return &Service{
 		IHomeworkService: NewHomeworkService(repos),
-		IScheduleService: NewScheduleService(repos),
+		IScheduleService: NewScheduleFefuService(),
 	}
 }
