@@ -172,7 +172,7 @@ func (b *Bot) SendHomework(homework domain.HomeworkToGet, chatId int64, channel 
 
 func (b *Bot) SendSchedule(schedule domain.Schedule, chatId int64, channel int) error {
 	messages := b.conv.ScheduleToText(schedule)
-	daysOfWeek := []string{"Monday", "Tuesday", "Wednesday", "Thursday", "Friday"}
+	daysOfWeek := []string{"Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"}
 	for _, day := range daysOfWeek {
 		text, ok := messages[day]
 		if !ok {

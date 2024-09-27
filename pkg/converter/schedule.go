@@ -27,11 +27,18 @@ func (c *ScheduleConv) subjectToText(subject domain.Subject) string {
 	}
 
 	text += timeSlots[subject.Start.Hour()]
-	text += fmt.Sprintf("  %s:%s - %s:%s  %s\n", strconv.Itoa(subject.Start.Hour()),
+	text += fmt.Sprintf("    %s:%s - %s:%s  %s\n\n", strconv.Itoa(subject.Start.Hour()),
 		strconv.Itoa(subject.Start.Minute()), strconv.Itoa(subject.End.Hour()), strconv.Itoa(subject.End.Minute()), subject.Classroom)
 
-	text += fmt.Sprintf("  %s(%s)", subject.Teacher, subject.TeacherDegree) + "\n"
-	text += fmt.Sprintf("  %s\n", subject.PPSLoad)
+	if subject.Teacher != "" {
+		text += fmt.Sprintf("    %s", subject.Teacher)
+		if subject.TeacherDegree != "" {
+			text += fmt.Sprintf(" (%s)", subject.TeacherDegree)
+		}
+		text += "\n"
+	}
+
+	text += fmt.Sprintf("    %s\n", subject.PPSLoad)
 
 	return text
 }

@@ -36,14 +36,14 @@ func (s *ScheduleFefuService) GetOnDate(date time.Time) domain.Schedule {
 func getDatesForWeek() (time.Time, time.Time) {
 	date := time.Now()
 	dayOfWeek := int(date.Weekday())
-	lastSunday := date.AddDate(0, 0, -dayOfWeek-7)
+	lastSunday := date.AddDate(0, 0, -dayOfWeek)
 	saturday := date.AddDate(0, 0, 6-dayOfWeek)
 	return lastSunday, saturday
 }
 
 func (s *ScheduleFefuService) GetOnWeek() domain.Schedule {
 	lastSunday, saturday := getDatesForWeek()
-	link := generateLink("agendaDay", lastSunday, saturday)
+	link := generateLink("agendaWeek", lastSunday, saturday)
 
 	res, err := s.parser.ParseSchedule(link)
 	if err != nil {
