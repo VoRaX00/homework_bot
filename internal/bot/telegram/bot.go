@@ -174,10 +174,21 @@ func (b *Bot) SendHomework(homework domain.HomeworkToGet, chatId int64, channel 
 	}
 
 	err := b.SendMessage(msg, channel)
-	if err != nil {
-		return err
+	return err
+}
+
+func scheduleToText(schedule domain.Schedule) string {
+	return ""
+}
+
+func (b *Bot) SendSchedule(schedule domain.Schedule, chatId int64, channel int) error {
+	text := scheduleToText(schedule)
+	msg := domain.MessageToSend{
+		ChatId: chatId,
+		Text:   text,
 	}
-	return nil
+	err := b.SendMessage(msg, channel)
+	return err
 }
 
 func (b *Bot) SendMessage(message domain.MessageToSend, channel int) error {

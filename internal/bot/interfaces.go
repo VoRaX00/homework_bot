@@ -9,6 +9,7 @@ import (
 
 type IBot interface {
 	SendHomework(homework domain.HomeworkToGet, chatId int64, channel int) error
+	SendSchedule(schedule domain.Schedule, chatId int64, channel int) error
 	SendMessage(message domain.MessageToSend, channel int) error
 	SendInputError(message *tgbotapi.Message) error
 	GetUserStates() map[int64]string
@@ -21,17 +22,21 @@ type IBot interface {
 }
 
 const (
-	CommandStart         = "start"
-	CommandAdd           = "add"
-	CommandUpdate        = "update"
-	CommandDelete        = "delete"
-	CommandHelp          = "help"
-	CommandGetAll        = "get_all"
-	CommandGetOnWeek     = "get_on_week"
-	CommandGetOnToday    = "get_on_today"
-	CommandGetOnTomorrow = "get_on_tomorrow"
-	CommandGetOnDate     = "get_on_date"
-	CommandGetOnId       = "get_on_id"
+	CommandStart            = "start"
+	CommandAdd              = "add"
+	CommandUpdate           = "update"
+	CommandDelete           = "delete"
+	CommandHelp             = "help"
+	CommandGetAll           = "get_all"
+	CommandGetOnWeek        = "get_on_week"
+	CommandGetOnToday       = "get_on_today"
+	CommandGetOnTomorrow    = "get_on_tomorrow"
+	CommandGetOnDate        = "get_on_date"
+	CommandGetOnId          = "get_on_id"
+	CommandScheduleWeek     = "schedule_week"
+	CommandScheduleDate     = "schedule_date"
+	CommandScheduleToday    = "schedule_today"
+	CommandScheduleTomorrow = "schedule_tomorrow"
 )
 
 const (

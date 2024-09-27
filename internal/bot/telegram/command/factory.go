@@ -9,17 +9,21 @@ import (
 )
 
 const (
-	commandStart         = "start"
-	commandAdd           = "add"
-	commandUpdate        = "update"
-	commandDelete        = "delete"
-	commandHelp          = "help"
-	commandGetAll        = "get_all"
-	commandGetOnWeek     = "get_on_week"
-	commandGetOnToday    = "get_on_today"
-	commandGetOnTomorrow = "get_on_tomorrow"
-	commandGetOnDate     = "get_on_date"
-	commandGetOnId       = "get_on_id"
+	commandStart            = "start"
+	commandAdd              = "add"
+	commandUpdate           = "update"
+	commandDelete           = "delete"
+	commandHelp             = "help"
+	commandGetAll           = "get_all"
+	commandGetOnWeek        = "get_on_week"
+	commandGetOnToday       = "get_on_today"
+	commandGetOnTomorrow    = "get_on_tomorrow"
+	commandGetOnDate        = "get_on_date"
+	commandGetOnId          = "get_on_id"
+	commandScheduleWeek     = "schedule_week"
+	commandScheduleDate     = "schedule_date"
+	commandScheduleToday    = "schedule_today"
+	commandScheduleTomorrow = "schedule_to_morrow"
 )
 
 type Factory struct {
@@ -74,6 +78,14 @@ func (f *Factory) GetCommand(message *tgbotapi.Message) ICommand {
 		return NewGetOnTomorrowCommand()
 	case commandGetOnDate:
 		return NewGetOnDateCommand()
+	case commandScheduleWeek:
+		return NewScheduleWeekCommand()
+	case commandScheduleDate:
+		return NewScheduleDayCommand()
+	case commandScheduleToday:
+		return NewScheduleTodayCommand()
+	case commandScheduleTomorrow:
+		return NewScheduleTomorrowCommand()
 	default:
 		return NewDefaultCommand()
 	}
