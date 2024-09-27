@@ -14,7 +14,7 @@ func NewScheduleConv() *ScheduleConv {
 }
 
 func (c *ScheduleConv) subjectToText(subject domain.Subject) string {
-	text := "_________________________________"
+	text := "_________________________________\n"
 	timeSlots := map[int]string{
 		8:  "1. " + subject.Title + "\n",
 		10: "2. " + subject.Title + "\n",
