@@ -34,6 +34,7 @@ func (p *FefuParser) ParseSchedule(link string) (domain.Schedule, error) {
 	req.Header.Add("Accept-Language", "en-US,en;q=0.9")
 	req.Header.Add("X-Requested-With", "XMLHttpRequest")
 	req.Header.Add("Cookie", os.Getenv("COOKIE"))
+
 	resp, err := client.Do(req)
 	if err != nil {
 		return domain.Schedule{}, err
@@ -47,6 +48,5 @@ func (p *FefuParser) ParseSchedule(link string) (domain.Schedule, error) {
 	if err != nil {
 		return domain.Schedule{}, err
 	}
-
 	return ByteToSchedule(body)
 }

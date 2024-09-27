@@ -8,6 +8,7 @@ import (
 	"homework_bot/internal/bot"
 	"homework_bot/internal/bot/telegram/handler"
 	"homework_bot/internal/domain"
+	"homework_bot/pkg/converter"
 	"homework_bot/pkg/switcher"
 )
 
@@ -17,6 +18,7 @@ type Bot struct {
 	userData   map[int64]domain.Homework
 	services   *services.Service
 	switcher   *switcher.Switcher
+	conv       *converter.Converter
 }
 
 func NewBot(b *tgbotapi.BotAPI, service *services.Service) *Bot {
@@ -36,6 +38,7 @@ func NewBot(b *tgbotapi.BotAPI, service *services.Service) *Bot {
 		bot:        b,
 		services:   service,
 		switcher:   switcher.NewSwitcher(statusesAdd, statusesUpdate, statusesGetTags),
+		conv:       converter.NewConverter(),
 		userData:   make(map[int64]domain.Homework),
 		userStates: make(map[int64]string),
 	}
@@ -155,18 +158,8 @@ func (b *Bot) sendText(message domain.MessageToSend, channel int) error {
 	return err
 }
 
-func homeworkToText(homework domain.HomeworkToGet) string {
-	text := "Название: " + homework.Name +
-		"\n" + "Описание: " + homework.Description + "\n" +
-		"Дедлайн: " + homework.Deadline.String() + "\n"
-	for _, tag := range homework.Tags {
-		text += "#" + tag + "\n"
-	}
-	return text
-}
-
 func (b *Bot) SendHomework(homework domain.HomeworkToGet, chatId int64, channel int) error {
-	text := homeworkToText(homework)
+	text := b.conv.HomeworkToText(homework)
 	msg := domain.MessageToSend{
 		ChatId: chatId,
 		Text:   text,
@@ -177,18 +170,25 @@ func (b *Bot) SendHomework(homework domain.HomeworkToGet, chatId int64, channel 
 	return err
 }
 
-func scheduleToText(schedule domain.Schedule) string {
-	return ""
-}
-
 func (b *Bot) SendSchedule(schedule domain.Schedule, chatId int64, channel int) error {
-	text := scheduleToText(schedule)
-	msg := domain.MessageToSend{
-		ChatId: chatId,
-		Text:   text,
+	messages := b.conv.ScheduleToText(schedule)
+	daysOfWeek := []string{"Monday", "Tuesday", "Wednesday", "Thursday", "Friday"}
+	for _, day := range daysOfWeek {
+		text, ok := messages[day]
+		if !ok {
+			continue
+		}
+
+		msg := domain.MessageToSend{
+			ChatId: chatId,
+			Text:   text,
+		}
+		err := b.SendMessage(msg, channel)
+		if err != nil {
+			return err
+		}
 	}
-	err := b.SendMessage(msg, channel)
-	return err
+	return nil
 }
 
 func (b *Bot) SendMessage(message domain.MessageToSend, channel int) error {
