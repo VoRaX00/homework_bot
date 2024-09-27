@@ -3,12 +3,13 @@ package domain
 import "time"
 
 type Subject struct {
-	Name        string
-	BeginLesson time.Time
-	EndLesson   time.Time
-	TypeLesson  string
-	Office      string
-	Teacher     string
-	Number      string
-	Day         time.Time
+	Title         string    `json:"title"`
+	Start         time.Time `json:"start"`
+	End           time.Time `json:"end"`
+	Group         string    `json:"group"`
+	PPSLoad       string    `json:"pps_load"`
+	Classroom     string    `json:"classroom"`
+	Teacher       string    `json:"teacher"`
+	TeacherDegree string    `json:"teacher_degree"`
+	Subgroup      string    `json:"subgroup"`
 }

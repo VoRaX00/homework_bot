@@ -1,5 +1,5 @@
 package domain
 
 type Schedule struct {
-	Subjects []Subject
+	Subjects []Subject `json:"events"`
 }
