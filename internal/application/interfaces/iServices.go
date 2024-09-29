@@ -25,3 +25,9 @@ type IScheduleService interface {
 	GetOnToday() domain.Schedule
 	GetOnTomorrow() domain.Schedule
 }
+
+type IUserService interface {
+	Create(user domain.User) error
+	Update(user domain.User) error
+	GetByUsername(username string) (domain.User, error)
+}

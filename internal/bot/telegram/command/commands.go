@@ -332,3 +332,13 @@ func (c *ScheduleTomorrowCommand) Exec(b bot.IBot, message *tgbotapi.Message) er
 	err := b.SendSchedule(schedule, message.Chat.ID, bot.DefaultChannel)
 	return err
 }
+
+type AskGroupCommand struct{}
+
+func NewAskGroupCommand() *AskGroupCommand {
+	return &AskGroupCommand{}
+}
+
+func (c *AskGroupCommand) Exec(b bot.IBot, message *tgbotapi.Message) error {
+	return nil
+}

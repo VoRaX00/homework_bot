@@ -8,11 +8,13 @@ import (
 type Service struct {
 	interfaces.IHomeworkService
 	interfaces.IScheduleService
+	interfaces.IUserService
 }
 
 func NewService(repos *repositories.Repository) *Service {
 	return &Service{
 		IHomeworkService: NewHomeworkService(repos),
 		IScheduleService: NewScheduleFefuService(),
+		IUserService:     NewUserService(repos),
 	}
 }

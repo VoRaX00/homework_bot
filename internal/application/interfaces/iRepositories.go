@@ -18,3 +18,9 @@ type IHomeworkRepository interface {
 	Update(homeworkToUpdate domain.HomeworkToUpdate) (domain.Homework, error)
 	Delete(id int) error
 }
+
+type IUserRepository interface {
+	Create(user domain.User) error
+	Update(user domain.User) error
+	GetByUsername(username string) (domain.User, error)
+}
