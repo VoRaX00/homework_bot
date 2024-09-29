@@ -37,7 +37,7 @@ func NewBot(b *tgbotapi.BotAPI, service *services.Service) *Bot {
 	return &Bot{
 		bot:        b,
 		services:   service,
-		switcher:   switcher.NewSwitcher(statusesAdd, statusesUpdate, statusesGetTags),
+		switcher:   switcher.NewSwitcher(statusesAdd, statusesUpdate, statusesGetTags, []string{}),
 		conv:       converter.NewConverter(),
 		userData:   make(map[int64]domain.Homework),
 		userStates: make(map[int64]string),
@@ -83,7 +83,7 @@ func (b *Bot) GetBot() *tgbotapi.BotAPI {
 
 func (b *Bot) create(message *tgbotapi.Message) error {
 	userId := message.From.ID
-	id, err := b.services.Create(b.userData[userId])
+	id, err := b.services.IHomeworkService.Create(b.userData[userId])
 	if err != nil {
 		return err
 	}

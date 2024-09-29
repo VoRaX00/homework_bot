@@ -1,10 +1,10 @@
 package switcher
 
 type ISwitcher interface {
-	Current() string
-	Next()
-	Previous()
-	IsActive() bool
+	Current(id int64) string
+	Next(id int64)
+	Previous(id int64)
+	IsActive(id int64) bool
 }
 
 type ISwitcherAdd interface {
@@ -16,5 +16,9 @@ type ISwitcherUpdate interface {
 }
 
 type ISwitcherGetTags interface {
+	ISwitcher
+}
+
+type ISwitcherUser interface {
 	ISwitcher
 }
