@@ -15,8 +15,12 @@ func NewSwitcherAdd(statuses []string) *SwitcherAdd {
 }
 
 func (s *SwitcherAdd) Next(id int64) {
-	if s.currentStatus[id] < len(s.statuses)-1 {
+	val, ok := s.currentStatus[id]
+	if val < len(s.statuses)-1 && ok {
 		s.currentStatus[id]++
+		return
+	} else if !ok {
+		s.currentStatus[id] = 0
 		return
 	}
 	s.currentStatus[id] = -1

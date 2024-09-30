@@ -19,7 +19,7 @@ func NewHomeworkService(repos *repositories.Repository) *HomeworkService {
 func (s *HomeworkService) Create(homework domain.Homework) (int, error) {
 	homework.CreatedAt = time.Now()
 	homework.UpdatedAt = time.Now()
-	return s.repos.Create(homework)
+	return s.repos.IHomeworkRepository.Create(homework)
 }
 
 func (s *HomeworkService) GetByTags(tags []string) ([]domain.HomeworkToGet, error) {
@@ -55,7 +55,7 @@ func (s *HomeworkService) GetByDate(date time.Time) ([]domain.HomeworkToGet, err
 }
 
 func (s *HomeworkService) Update(homeworkToUpdate domain.HomeworkToUpdate) (domain.Homework, error) {
-	return s.repos.Update(homeworkToUpdate)
+	return s.repos.IHomeworkRepository.Update(homeworkToUpdate)
 }
 
 func (s *HomeworkService) Delete(id int) error {

@@ -2,7 +2,6 @@ package handler
 
 import (
 	"fmt"
-	"github.com/go-playground/validator/v10"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"homework_bot/internal/bot"
 	"homework_bot/internal/domain"
@@ -16,25 +15,16 @@ func NewAskGroupHandler() *AskGroupHandler {
 }
 
 func validateGroup(message *tgbotapi.Message) error {
-	validate := validator.New()
-
-	err := validate.RegisterValidation("customGroup", func(fl validator.FieldLevel) bool {
-		group := fl.Field().String()
-		fields := strings.Split(group, " ")
-		if len(fields) != 2 || len(fields[0]) != 14 {
-			return false
-		}
-
-		return true
-	})
-
-	if err != nil {
-		err = fmt.Errorf("failed to validate text: %v", err)
-		return err
+	group := message.Text
+	fields := strings.Split(group, " ")
+	if len(fields) != 2 {
+		return fmt.Errorf("invalid group format")
 	}
-
-	err = validate.Var(message.Text, "required,customGroup")
-	return err
+	if len(fields[0]) != 15 {
+		fmt.Println(len(fields[0]))
+		return fmt.Errorf("invalid group format")
+	}
+	return nil
 }
 
 func (h *AskGroupHandler) Handle(b bot.IBot, message *tgbotapi.Message) error {
@@ -47,21 +37,43 @@ func (h *AskGroupHandler) Handle(b bot.IBot, message *tgbotapi.Message) error {
 		if err != nil {
 			return err
 		}
+		return nil
 	}
 
 	fields := strings.Split(message.Text, " ")
-	user := domain.NewUser(message.From.UserName, fields[0], fields[1])
+	user, err := b.GetServices().IUserService.GetByUsername(message.From.UserName)
 
-	err := b.GetServices().IUserService.Create(*user)
 	if err != nil {
+		user = *domain.NewUser(message.From.UserName, fields[0], fields[1])
+		err = b.GetServices().IUserService.Create(user)
+		if err != nil {
+			msg := domain.MessageToSend{
+				ChatId: message.Chat.ID,
+				Text:   "Server error\n",
+			}
+			_ = b.SendMessage(msg, bot.DefaultChannel)
+			return err
+		}
+		userId := message.From.ID
+		b.GetSwitcher().Next(userId)
+
 		msg := domain.MessageToSend{
 			ChatId: message.Chat.ID,
-			Text:   "Server error\n",
+			Text:   "Группа успешно задана",
 		}
 		_ = b.SendMessage(msg, bot.DefaultChannel)
+		return nil
+	}
+
+	err = b.GetServices().IUserService.Update(user)
+	if err != nil {
 		return err
 	}
-	userId := message.From.ID
-	b.GetSwitcher().Next(userId)
-	return nil
+
+	msg := domain.MessageToSend{
+		ChatId: message.Chat.ID,
+		Text:   "Группа успешно задана",
+	}
+	_ = b.SendMessage(msg, bot.DefaultChannel)
+	return err
 }

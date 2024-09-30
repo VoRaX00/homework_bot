@@ -37,6 +37,7 @@ const (
 	CommandScheduleDate     = "schedule_date"
 	CommandScheduleToday    = "schedule_today"
 	CommandScheduleTomorrow = "schedule_tomorrow"
+	CommandAskGroup         = "ask_group"
 )
 
 const (

@@ -15,17 +15,23 @@ func NewSwitcherUser(statuses []string) *SwitcherUser {
 }
 
 func (s *SwitcherUser) Next(id int64) {
-	if s.currentStatus[id] < len(s.statuses)-1 {
+	val, ok := s.currentStatus[id]
+	if val < len(s.statuses)-1 && ok {
 		s.currentStatus[id]++
+		return
+	} else if !ok {
+		s.currentStatus[id] = 0
 		return
 	}
 	s.currentStatus[id] = -1
 }
 
 func (s *SwitcherUser) Current(id int64) string {
-	if s.currentStatus[id] == -1 {
+	val, ok := s.currentStatus[id]
+	if !ok || val == -1 {
 		return ""
 	}
+
 	return s.statuses[s.currentStatus[id]]
 }
 

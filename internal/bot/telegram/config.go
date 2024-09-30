@@ -12,6 +12,10 @@ func getCommandMenu() tgbotapi.SetMyCommandsConfig {
 			Description: "Начать общение с ботом",
 		},
 		tgbotapi.BotCommand{
+			Command:     bot.CommandAskGroup,
+			Description: "Задать группу",
+		},
+		tgbotapi.BotCommand{
 			Command:     bot.CommandScheduleWeek,
 			Description: "Расписание на неделю",
 		},

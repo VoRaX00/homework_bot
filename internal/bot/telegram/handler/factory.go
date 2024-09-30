@@ -18,7 +18,7 @@ func (f *Factory) GetHandler(b bot.IBot, message *tgbotapi.Message) IHandler {
 	case b.GetSwitcher().ISwitcherUpdate.Current(userId) == bot.WaitingId:
 		return NewWaitingIdHandler()
 	case b.GetSwitcher().ISwitcherUser.Current(userId) == bot.WaitingGroup:
-		return NewWaitingIdHandler()
+		return NewAskGroupHandler()
 	case b.GetSwitcher().ISwitcherAdd.Current(userId) == bot.WaitingName || b.GetSwitcher().ISwitcherUpdate.Current(userId) == bot.WaitingName:
 		return NewWaitingNameHandler()
 	case b.GetSwitcher().ISwitcherAdd.Current(userId) == bot.WaitingDescription || b.GetSwitcher().ISwitcherUpdate.Current(userId) == bot.WaitingDescription:
