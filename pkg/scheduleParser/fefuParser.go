@@ -21,7 +21,7 @@ func ByteToSchedule(body []byte) (domain.Schedule, error) {
 	return schedule, err
 }
 
-func (p *FefuParser) ParseSchedule(link string) (domain.Schedule, error) {
+func (p *FefuParser) ParseSchedule(codeDirection, studyGroup, link string) (domain.Schedule, error) {
 	client := &http.Client{}
 	req, err := http.NewRequest("GET", link, nil)
 	if err != nil {
@@ -48,5 +48,17 @@ func (p *FefuParser) ParseSchedule(link string) (domain.Schedule, error) {
 	if err != nil {
 		return domain.Schedule{}, err
 	}
-	return ByteToSchedule(body)
+
+	schedule, err := ByteToSchedule(body)
+	if err != nil {
+		return domain.Schedule{}, err
+	}
+
+	var resultInput domain.Schedule
+	for _, subject := range schedule.Subjects {
+		if subject.Subgroup == studyGroup {
+			resultInput.Subjects = append(resultInput.Subjects, subject)
+		}
+	}
+	return resultInput, nil
 }

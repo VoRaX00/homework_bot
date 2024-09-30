@@ -24,9 +24,9 @@ func generateLink(typeSchedule string, firstDate, secondDate time.Time) string {
 	return link
 }
 
-func (s *ScheduleFefuService) GetOnDate(date time.Time) domain.Schedule {
+func (s *ScheduleFefuService) GetOnDate(user domain.User, date time.Time) domain.Schedule {
 	link := generateLink("agendaDay", date.Add(-24*time.Hour), date)
-	res, err := s.parser.ParseSchedule(link)
+	res, err := s.parser.ParseSchedule(user.CodeDirection, user.StudyGroup, link)
 	if err != nil {
 		return domain.Schedule{}
 	}
@@ -41,11 +41,11 @@ func getDatesForWeek() (time.Time, time.Time) {
 	return lastSunday, saturday
 }
 
-func (s *ScheduleFefuService) GetOnWeek() domain.Schedule {
+func (s *ScheduleFefuService) GetOnWeek(user domain.User) domain.Schedule {
 	lastSunday, saturday := getDatesForWeek()
 	link := generateLink("agendaWeek", lastSunday, saturday)
 
-	res, err := s.parser.ParseSchedule(link)
+	res, err := s.parser.ParseSchedule(user.CodeDirection, user.StudyGroup, link)
 	if err != nil {
 		logrus.Errorf("Error in parse schedule, %v", err)
 		return domain.Schedule{}
@@ -53,10 +53,10 @@ func (s *ScheduleFefuService) GetOnWeek() domain.Schedule {
 	return res
 }
 
-func (s *ScheduleFefuService) GetOnToday() domain.Schedule {
-	return s.GetOnDate(time.Now())
+func (s *ScheduleFefuService) GetOnToday(user domain.User) domain.Schedule {
+	return s.GetOnDate(user, time.Now())
 }
 
-func (s *ScheduleFefuService) GetOnTomorrow() domain.Schedule {
-	return s.GetOnDate(time.Now().AddDate(0, 0, 1))
+func (s *ScheduleFefuService) GetOnTomorrow(user domain.User) domain.Schedule {
+	return s.GetOnDate(user, time.Now().AddDate(0, 0, 1))
 }

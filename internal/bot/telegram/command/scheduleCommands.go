@@ -4,18 +4,30 @@ import (
 	"github.com/go-playground/validator/v10"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"homework_bot/internal/bot"
+	"homework_bot/internal/domain"
 	"time"
 )
 
 type ScheduleWeekCommand struct{}
+
+func isUser(b bot.IBot, message *tgbotapi.Message) (domain.User, error) {
+	user, err := b.GetServices().GetByUsername(message.From.UserName)
+	return user, err
+}
 
 func NewScheduleWeekCommand() *ScheduleWeekCommand {
 	return &ScheduleWeekCommand{}
 }
 
 func (c *ScheduleWeekCommand) Exec(b bot.IBot, message *tgbotapi.Message) error {
-	schedule := b.GetServices().GetOnWeek()
-	err := b.SendSchedule(schedule, message.Chat.ID, bot.DefaultChannel)
+	user, err := isUser(b, message)
+	if err != nil {
+		command := NewAskGroupCommand()
+		return command.Exec(b, message)
+	}
+
+	schedule := b.GetServices().GetOnWeek(user)
+	err = b.SendSchedule(schedule, message.Chat.ID, bot.DefaultChannel)
 	return err
 }
 
@@ -26,9 +38,14 @@ func NewScheduleDayCommand() *ScheduleDayCommand {
 }
 
 func (c *ScheduleDayCommand) Exec(b bot.IBot, message *tgbotapi.Message) error {
-	validate := validator.New()
+	user, err := isUser(b, message)
+	if err != nil {
+		command := NewAskGroupCommand()
+		return command.Exec(b, message)
+	}
 
-	err := validate.RegisterValidation("customDate", func(fl validator.FieldLevel) bool {
+	validate := validator.New()
+	err = validate.RegisterValidation("customDate", func(fl validator.FieldLevel) bool {
 		dateStr := fl.Field().String()
 		_, err := time.Parse("2006-01-02", dateStr)
 		return err == nil
@@ -42,7 +59,7 @@ func (c *ScheduleDayCommand) Exec(b bot.IBot, message *tgbotapi.Message) error {
 		return err
 	}
 
-	schedule := b.GetServices().GetOnDate(date)
+	schedule := b.GetServices().GetOnDate(user, date)
 	err = b.SendSchedule(schedule, message.Chat.ID, bot.DefaultChannel)
 	return err
 }
@@ -54,8 +71,14 @@ func NewScheduleTodayCommand() *ScheduleTodayCommand {
 }
 
 func (c *ScheduleTodayCommand) Exec(b bot.IBot, message *tgbotapi.Message) error {
-	schedule := b.GetServices().GetOnToday()
-	err := b.SendSchedule(schedule, message.Chat.ID, bot.DefaultChannel)
+	user, err := isUser(b, message)
+	if err != nil {
+		command := NewAskGroupCommand()
+		return command.Exec(b, message)
+	}
+
+	schedule := b.GetServices().GetOnToday(user)
+	err = b.SendSchedule(schedule, message.Chat.ID, bot.DefaultChannel)
 	return err
 }
 
@@ -66,7 +89,13 @@ func NewScheduleTomorrowCommand() *ScheduleTomorrowCommand {
 }
 
 func (c *ScheduleTomorrowCommand) Exec(b bot.IBot, message *tgbotapi.Message) error {
-	schedule := b.GetServices().GetOnTomorrow()
-	err := b.SendSchedule(schedule, message.Chat.ID, bot.DefaultChannel)
+	user, err := isUser(b, message)
+	if err != nil {
+		command := NewAskGroupCommand()
+		return command.Exec(b, message)
+	}
+
+	schedule := b.GetServices().GetOnTomorrow(user)
+	err = b.SendSchedule(schedule, message.Chat.ID, bot.DefaultChannel)
 	return err
 }

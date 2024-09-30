@@ -20,10 +20,10 @@ type IHomeworkService interface {
 }
 
 type IScheduleService interface {
-	GetOnDate(date time.Time) domain.Schedule
-	GetOnWeek() domain.Schedule
-	GetOnToday() domain.Schedule
-	GetOnTomorrow() domain.Schedule
+	GetOnDate(user domain.User, date time.Time) domain.Schedule
+	GetOnWeek(user domain.User) domain.Schedule
+	GetOnToday(user domain.User) domain.Schedule
+	GetOnTomorrow(user domain.User) domain.Schedule
 }
 
 type IUserService interface {
