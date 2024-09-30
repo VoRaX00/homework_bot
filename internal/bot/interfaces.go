@@ -41,6 +41,7 @@ const (
 
 const (
 	WaitingId          = "WaitingId"
+	WaitingGroup       = "WaitingGroup"
 	WaitingName        = "WaitingName"
 	WaitingDescription = "WaitingDescription"
 	WaitingImages      = "WaitingImages"

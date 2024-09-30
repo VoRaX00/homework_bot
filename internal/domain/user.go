@@ -8,3 +8,11 @@ type User struct {
 	CodeDirection string    `db:"code_direction"`
 	StudyGroup    string    `db:"study_group"`
 }
+
+func NewUser(username, codeDirection, studyGroup string) *User {
+	return &User{
+		Username:      username,
+		CodeDirection: codeDirection,
+		StudyGroup:    studyGroup,
+	}
+}

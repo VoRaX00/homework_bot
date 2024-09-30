@@ -33,11 +33,12 @@ func NewBot(b *tgbotapi.BotAPI, service *services.Service) *Bot {
 	statusesUpdate := []string{bot.WaitingId}
 	statusesUpdate = append(statusesUpdate, statusesAdd...)
 	statusesGetTags := []string{bot.WaitingTags}
+	statusesAskGroup := []string{bot.WaitingGroup}
 
 	return &Bot{
 		bot:        b,
 		services:   service,
-		switcher:   switcher.NewSwitcher(statusesAdd, statusesUpdate, statusesGetTags, []string{}),
+		switcher:   switcher.NewSwitcher(statusesAdd, statusesUpdate, statusesGetTags, statusesAskGroup),
 		conv:       converter.NewConverter(),
 		userData:   make(map[int64]domain.Homework),
 		userStates: make(map[int64]string),

@@ -24,6 +24,7 @@ const (
 	commandScheduleDate     = "schedule_date"
 	commandScheduleToday    = "schedule_today"
 	commandScheduleTomorrow = "schedule_to_morrow"
+	commandAskGroup         = "ask_group"
 )
 
 type Factory struct {
@@ -64,6 +65,8 @@ func (f *Factory) GetCommand(message *tgbotapi.Message) ICommand {
 	switch message.Command() {
 	case commandStart:
 		return NewStartCommand()
+	case commandAskGroup:
+		return NewAskGroupCommand()
 	case commandHelp:
 		return NewHelpCommand()
 	case commandGetAll:
