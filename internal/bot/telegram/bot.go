@@ -55,6 +55,7 @@ func (b *Bot) GetUserData() map[int64]domain.Homework {
 func (b *Bot) SetUserStates(userStates map[int64]string) {
 	b.userStates = userStates
 }
+
 func (b *Bot) SetUserData(userData map[int64]domain.Homework) {
 	b.userData = userData
 }

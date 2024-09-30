@@ -13,19 +13,20 @@ func NewFactory() *Factory {
 }
 
 func (f *Factory) GetHandler(b bot.IBot, message *tgbotapi.Message) IHandler {
+	userId := message.From.ID
 	switch {
-	case b.GetSwitcher().ISwitcherUpdate.Current() == bot.WaitingId:
+	case b.GetSwitcher().ISwitcherUpdate.Current(userId) == bot.WaitingId:
 		return NewWaitingIdHandler()
-	case b.GetSwitcher().ISwitcherAdd.Current() == bot.WaitingName || b.GetSwitcher().ISwitcherUpdate.Current() == bot.WaitingName:
+	case b.GetSwitcher().ISwitcherAdd.Current(userId) == bot.WaitingName || b.GetSwitcher().ISwitcherUpdate.Current(userId) == bot.WaitingName:
 		return NewWaitingNameHandler()
-	case b.GetSwitcher().ISwitcherAdd.Current() == bot.WaitingDescription || b.GetSwitcher().ISwitcherUpdate.Current() == bot.WaitingDescription:
+	case b.GetSwitcher().ISwitcherAdd.Current(userId) == bot.WaitingDescription || b.GetSwitcher().ISwitcherUpdate.Current(userId) == bot.WaitingDescription:
 		return NewWaitingDescriptionHandler()
-	case b.GetSwitcher().ISwitcherAdd.Current() == bot.WaitingImages || b.GetSwitcher().ISwitcherUpdate.Current() == bot.WaitingImages:
+	case b.GetSwitcher().ISwitcherAdd.Current(userId) == bot.WaitingImages || b.GetSwitcher().ISwitcherUpdate.Current(userId) == bot.WaitingImages:
 		return NewWaitingImageHandler()
-	case b.GetSwitcher().ISwitcherAdd.Current() == bot.WaitingTags ||
-		b.GetSwitcher().ISwitcherUpdate.Current() == bot.WaitingTags || b.GetSwitcher().ISwitcherGetTags.Current() == bot.WaitingTags:
+	case b.GetSwitcher().ISwitcherAdd.Current(userId) == bot.WaitingTags ||
+		b.GetSwitcher().ISwitcherUpdate.Current(userId) == bot.WaitingTags || b.GetSwitcher().ISwitcherGetTags.Current(userId) == bot.WaitingTags:
 		return NewWaitingTagsHandler()
-	case b.GetSwitcher().ISwitcherAdd.Current() == bot.WaitingDeadline || b.GetSwitcher().ISwitcherUpdate.Current() == bot.WaitingDeadline:
+	case b.GetSwitcher().ISwitcherAdd.Current(userId) == bot.WaitingDeadline || b.GetSwitcher().ISwitcherUpdate.Current(userId) == bot.WaitingDeadline:
 		return NewWaitingDeadlineHandler()
 	default:
 		if message.IsCommand() {

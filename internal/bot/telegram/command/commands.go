@@ -33,7 +33,7 @@ func NewAddCommand() *AddCommand {
 }
 
 func (c *AddCommand) Exec(b bot.IBot, message *tgbotapi.Message) error {
-	b.GetSwitcher().ISwitcherAdd.Next()
+	b.GetSwitcher().ISwitcherAdd.Next(message.From.ID)
 	msg := domain.MessageToSend{
 		ChatId: message.Chat.ID,
 		Text:   "Напишите название домашней работы/записи",
@@ -50,7 +50,7 @@ func NewUpdateCommand() *UpdateCommand {
 }
 
 func (c *UpdateCommand) Exec(b bot.IBot, message *tgbotapi.Message) error {
-	b.GetSwitcher().ISwitcherUpdate.Next()
+	b.GetSwitcher().ISwitcherUpdate.Next(message.From.ID)
 	msg := domain.MessageToSend{
 		ChatId: message.Chat.ID,
 		Text:   "Напишите Id вашей записи",
@@ -340,5 +340,6 @@ func NewAskGroupCommand() *AskGroupCommand {
 }
 
 func (c *AskGroupCommand) Exec(b bot.IBot, message *tgbotapi.Message) error {
+
 	return nil
 }

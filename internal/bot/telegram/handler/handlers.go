@@ -58,7 +58,7 @@ func (h *WaitingNameHandler) Handle(b bot.IBot, message *tgbotapi.Message) error
 
 	userData[userId] = data
 	b.SetUserData(userData)
-	b.GetSwitcher().Next()
+	b.GetSwitcher().Next(userId)
 
 	msg := domain.MessageToSend{
 		ChatId: message.Chat.ID,
@@ -83,7 +83,7 @@ func (h *WaitingDescriptionHandler) Handle(b bot.IBot, message *tgbotapi.Message
 
 	userData[userId] = data
 	b.SetUserData(userData)
-	b.GetSwitcher().Next()
+	b.GetSwitcher().Next(userId)
 
 	msg := domain.MessageToSend{
 		ChatId: message.Chat.ID,
@@ -115,13 +115,17 @@ func (h *WaitingImageHandler) saveImage(bot *tgbotapi.BotAPI, fileId string) (st
 		return "", err
 	}
 
-	defer response.Body.Close()
+	defer func() {
+		_ = response.Body.Close()
+	}()
 
 	out, err := os.Create(savePath)
 	if err != nil {
 		return "", err
 	}
-	defer out.Close()
+	defer func() {
+		_ = out.Close()
+	}()
 
 	_, err = io.Copy(out, response.Body)
 	if err != nil {
@@ -166,7 +170,7 @@ func (h *WaitingImageHandler) Handle(b bot.IBot, message *tgbotapi.Message) erro
 		if err != nil {
 			return err
 		}
-		b.GetSwitcher().Next()
+		b.GetSwitcher().Next(userId)
 	} else {
 		msg := domain.MessageToSend{
 			ChatId: message.Chat.ID,
@@ -232,7 +236,7 @@ func (h *WaitingTagsHandler) Handle(b bot.IBot, message *tgbotapi.Message) error
 
 	userData[userId] = data
 	b.SetUserData(userData)
-	b.GetSwitcher().Next()
+	b.GetSwitcher().Next(userId)
 
 	msg := domain.MessageToSend{
 		ChatId: message.Chat.ID,
@@ -290,7 +294,7 @@ func (h *WaitingDeadlineHandler) Handle(b bot.IBot, message *tgbotapi.Message) e
 	data.Deadline = parsed
 	userData[userId] = data
 	b.SetUserData(userData)
-	b.GetSwitcher().Next()
+	b.GetSwitcher().Next(userId)
 	return nil
 }
 
@@ -328,8 +332,9 @@ func (h *WaitingIdHandler) Handle(b bot.IBot, message *tgbotapi.Message) error {
 		return err
 	}
 
-	userData[message.From.ID] = data
+	userId := message.From.ID
+	userData[userId] = data
 	b.SetUserData(userData)
-	b.GetSwitcher().Next()
+	b.GetSwitcher().Next(userId)
 	return nil
 }
