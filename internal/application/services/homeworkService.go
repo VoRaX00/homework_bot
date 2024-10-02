@@ -1,63 +1,63 @@
 package services
 
 import (
+	"homework_bot/internal/application/interfaces"
 	"homework_bot/internal/domain"
-	"homework_bot/internal/infrastructure/repositories"
 	"time"
 )
 
 type HomeworkService struct {
-	repos *repositories.Repository
+	homeworkRepo interfaces.IHomeworkRepository
 }
 
-func NewHomeworkService(repos *repositories.Repository) *HomeworkService {
+func NewHomeworkService(repos interfaces.IHomeworkRepository) *HomeworkService {
 	return &HomeworkService{
-		repos: repos,
+		homeworkRepo: repos,
 	}
 }
 
 func (s *HomeworkService) Create(homework domain.Homework) (int, error) {
 	homework.CreatedAt = time.Now()
 	homework.UpdatedAt = time.Now()
-	return s.repos.IHomeworkRepository.Create(homework)
+	return s.homeworkRepo.Create(homework)
 }
 
 func (s *HomeworkService) GetByTags(tags []string) ([]domain.HomeworkToGet, error) {
-	return s.repos.GetByTags(tags)
+	return s.homeworkRepo.GetByTags(tags)
 }
 
 func (s *HomeworkService) GetById(id int) (domain.HomeworkToGet, error) {
-	return s.repos.GetById(id)
+	return s.homeworkRepo.GetById(id)
 }
 
 func (s *HomeworkService) GetAll() ([]domain.HomeworkToGet, error) {
-	return s.repos.GetAll()
+	return s.homeworkRepo.GetAll()
 }
 
 func (s *HomeworkService) GetByName(name string) ([]domain.HomeworkToGet, error) {
-	return s.repos.GetByName(name)
+	return s.homeworkRepo.GetByName(name)
 }
 
 func (s *HomeworkService) GetByWeek() ([]domain.HomeworkToGet, error) {
-	return s.repos.GetByWeek()
+	return s.homeworkRepo.GetByWeek()
 }
 
 func (s *HomeworkService) GetByToday() ([]domain.HomeworkToGet, error) {
-	return s.repos.GetByToday()
+	return s.homeworkRepo.GetByToday()
 }
 
 func (s *HomeworkService) GetByTomorrow() ([]domain.HomeworkToGet, error) {
-	return s.repos.GetByTomorrow()
+	return s.homeworkRepo.GetByTomorrow()
 }
 
 func (s *HomeworkService) GetByDate(date time.Time) ([]domain.HomeworkToGet, error) {
-	return s.repos.GetByDate(date)
+	return s.homeworkRepo.GetByDate(date)
 }
 
 func (s *HomeworkService) Update(homeworkToUpdate domain.HomeworkToUpdate) (domain.Homework, error) {
-	return s.repos.IHomeworkRepository.Update(homeworkToUpdate)
+	return s.homeworkRepo.Update(homeworkToUpdate)
 }
 
 func (s *HomeworkService) Delete(id int) error {
-	return s.repos.Delete(id)
+	return s.homeworkRepo.Delete(id)
 }
