@@ -2,9 +2,11 @@ package handler
 
 import (
 	"fmt"
+	"github.com/go-playground/validator/v10"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"homework_bot/internal/bot"
 	"homework_bot/internal/domain"
+	"strconv"
 	"strings"
 )
 
@@ -20,9 +22,15 @@ func validateGroup(message *tgbotapi.Message) error {
 	if len(fields) != 2 {
 		return fmt.Errorf("invalid group format")
 	}
+
 	if len(fields[0]) != 15 {
 		fmt.Println(len(fields[0]))
 		return fmt.Errorf("invalid group format")
+	}
+
+	valid := validator.New()
+	if err := valid.Var(fields[1], "numeric"); err != nil {
+		return err
 	}
 	return nil
 }
@@ -42,9 +50,10 @@ func (h *AskGroupHandler) Handle(b bot.IBot, message *tgbotapi.Message) error {
 
 	fields := strings.Split(message.Text, " ")
 	user, err := b.GetServices().IUserService.GetByUsername(message.From.UserName)
+	studyGroup, _ := strconv.Atoi(fields[1])
 
 	if err != nil {
-		user = *domain.NewUser(message.From.UserName, fields[0], fields[1])
+		user = *domain.NewUser(message.From.UserName, fields[0], studyGroup)
 		err = b.GetServices().IUserService.Create(user)
 		if err != nil {
 			msg := domain.MessageToSend{
@@ -65,6 +74,10 @@ func (h *AskGroupHandler) Handle(b bot.IBot, message *tgbotapi.Message) error {
 		return nil
 	}
 
+	user = domain.User{
+		CodeDirection: fields[0],
+		StudyGroup:    studyGroup,
+	}
 	err = b.GetServices().IUserService.Update(user)
 	if err != nil {
 		return err
@@ -74,6 +87,8 @@ func (h *AskGroupHandler) Handle(b bot.IBot, message *tgbotapi.Message) error {
 		ChatId: message.Chat.ID,
 		Text:   "Группа успешно задана",
 	}
+
+	b.GetSwitcher().Next(message.Chat.ID)
 	_ = b.SendMessage(msg, bot.DefaultChannel)
 	return err
 }

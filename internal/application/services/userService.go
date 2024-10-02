@@ -1,6 +1,7 @@
 package services
 
 import (
+	"github.com/google/uuid"
 	"homework_bot/internal/domain"
 	"homework_bot/internal/infrastructure/repositories"
 )
@@ -16,6 +17,7 @@ func NewUserService(repos *repositories.Repository) *UserService {
 }
 
 func (s *UserService) Create(user domain.User) error {
+	user.Id = uuid.New()
 	return s.repos.IUserRepository.Create(user)
 }
 

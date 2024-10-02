@@ -39,15 +39,15 @@ func (s *SwitcherUpdate) Previous(id int64) {
 	switch s.currentStatus[id] {
 	case 0:
 		s.currentStatus[id] = -1
-		//return ""
+		return
 	case 1:
-		//return ""
+		return
 	default:
 		s.currentStatus[id]--
-		//return s.statuses[s.currentStatus]
 	}
 }
 
 func (s *SwitcherUpdate) IsActive(id int64) bool {
-	return s.currentStatus[id] >= 0
+	val, ok := s.currentStatus[id]
+	return ok && val >= 0
 }

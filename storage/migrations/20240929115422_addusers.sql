@@ -1,7 +1,7 @@
 -- +goose Up
 -- +goose StatementBegin
 CREATE TABLE users (
-    id SERIAL PRIMARY KEY,
+    id uuid PRIMARY KEY,
     username VARCHAR(255) NOT NULL UNIQUE,
     code_direction VARCHAR(20) NOT NULL,
     study_group NUMERIC

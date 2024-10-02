@@ -51,9 +51,6 @@ func (s *SwitcherAdd) Previous(id int64) {
 }
 
 func (s *SwitcherAdd) IsActive(id int64) bool {
-	_, ok := s.currentStatus[id]
-	if ok {
-		return s.currentStatus[id] >= 0
-	}
-	return false
+	val, ok := s.currentStatus[id]
+	return ok && val >= 0
 }

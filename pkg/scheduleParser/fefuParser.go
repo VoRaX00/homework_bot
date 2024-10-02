@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"os"
+	"strconv"
 )
 
 type FefuParser struct {
@@ -21,7 +22,7 @@ func ByteToSchedule(body []byte) (domain.Schedule, error) {
 	return schedule, err
 }
 
-func (p *FefuParser) ParseSchedule(codeDirection, studyGroup, link string) (domain.Schedule, error) {
+func (p *FefuParser) ParseSchedule(codeDirection, link string, studyGroup int) (domain.Schedule, error) {
 	client := &http.Client{}
 	req, err := http.NewRequest("GET", link, nil)
 	if err != nil {
@@ -54,9 +55,10 @@ func (p *FefuParser) ParseSchedule(codeDirection, studyGroup, link string) (doma
 		return domain.Schedule{}, err
 	}
 
+	group := strconv.Itoa(studyGroup)
 	var resultInput domain.Schedule
 	for _, subject := range schedule.Subjects {
-		if subject.Subgroup == studyGroup {
+		if subject.Subgroup == group || subject.Subgroup == "" {
 			resultInput.Subjects = append(resultInput.Subjects, subject)
 		}
 	}

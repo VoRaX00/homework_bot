@@ -21,12 +21,9 @@ func (r *UserRepository) Create(user domain.User) error {
 		return err
 	}
 
-	var userId string
-	query := "INSERT INTO users(username, code_direction, study_group) VALUES ($1, $2, $3)"
-
-	row := tx.QueryRow(query, user.Username, user.CodeDirection, user.StudyGroup)
-	err = row.Scan(&userId)
-	if err != nil {
+	query := "INSERT INTO users (id, username, code_direction, study_group) VALUES ($1, $2, $3, $4)"
+	row := tx.QueryRow(query, user.Id, user.Username, user.CodeDirection, user.StudyGroup)
+	if row.Err() != nil {
 		_ = tx.Rollback()
 		return err
 	}

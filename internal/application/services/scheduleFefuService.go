@@ -26,7 +26,7 @@ func generateLink(typeSchedule string, firstDate, secondDate time.Time) string {
 
 func (s *ScheduleFefuService) GetOnDate(user domain.User, date time.Time) domain.Schedule {
 	link := generateLink("agendaDay", date.Add(-24*time.Hour), date)
-	res, err := s.parser.ParseSchedule(user.CodeDirection, user.StudyGroup, link)
+	res, err := s.parser.ParseSchedule(user.CodeDirection, link, user.StudyGroup)
 	if err != nil {
 		return domain.Schedule{}
 	}
@@ -45,7 +45,7 @@ func (s *ScheduleFefuService) GetOnWeek(user domain.User) domain.Schedule {
 	lastSunday, saturday := getDatesForWeek()
 	link := generateLink("agendaWeek", lastSunday, saturday)
 
-	res, err := s.parser.ParseSchedule(user.CodeDirection, user.StudyGroup, link)
+	res, err := s.parser.ParseSchedule(user.CodeDirection, link, user.StudyGroup)
 	if err != nil {
 		logrus.Errorf("Error in parse schedule, %v", err)
 		return domain.Schedule{}

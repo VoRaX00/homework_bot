@@ -46,5 +46,6 @@ func (s *SwitcherUser) Previous(id int64) {
 }
 
 func (s *SwitcherUser) IsActive(id int64) bool {
-	return s.currentStatus[id] >= 0
+	val, ok := s.currentStatus[id]
+	return ok && val >= 0
 }
