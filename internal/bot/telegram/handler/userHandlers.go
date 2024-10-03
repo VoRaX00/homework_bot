@@ -75,6 +75,7 @@ func (h *AskGroupHandler) Handle(b bot.IBot, message *tgbotapi.Message) error {
 	}
 
 	user = domain.User{
+		Username:      message.From.UserName,
 		CodeDirection: fields[0],
 		StudyGroup:    studyGroup,
 	}

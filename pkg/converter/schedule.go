@@ -31,15 +31,9 @@ func (c *ScheduleConv) subjectToText(subject domain.Subject) string {
 		strconv.Itoa(subject.Start.Minute()), strconv.Itoa(subject.End.Hour()), strconv.Itoa(subject.End.Minute()), subject.Classroom)
 
 	if subject.Teacher != "" {
-		text += fmt.Sprintf("    %s", subject.Teacher)
-		if subject.TeacherDegree != "" {
-			text += fmt.Sprintf(" (%s)", subject.TeacherDegree)
-		}
-		text += "\n"
+		text += fmt.Sprintf("    %s\n", subject.Teacher)
 	}
-
 	text += fmt.Sprintf("    %s\n", subject.PPSLoad)
-
 	return text
 }
 

@@ -23,7 +23,7 @@ const (
 	commandScheduleWeek     = "schedule_week"
 	commandScheduleDate     = "schedule_date"
 	commandScheduleToday    = "schedule_today"
-	commandScheduleTomorrow = "schedule_to_morrow"
+	commandScheduleTomorrow = "schedule_tomorrow"
 	commandAskGroup         = "ask_group"
 )
 
