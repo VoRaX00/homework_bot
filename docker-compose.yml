@@ -8,7 +8,7 @@ services:
       POSTGRES_DB: homework_db
       PG_DATA: /var/lib/postgresql/data/
     ports:
-      - 5434:5432
+      - 5433:5432
     volumes:
       - db:/var/lib/postgresql/data/
 volumes:

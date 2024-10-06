@@ -27,8 +27,19 @@ func (c *ScheduleConv) subjectToText(subject domain.Subject) string {
 	}
 
 	text += timeSlots[subject.Start.Hour()]
+
+	minuteStart := strconv.Itoa(subject.Start.Minute())
+	if minuteStart == "0" {
+		minuteStart += "0"
+	}
+
+	minuteEnd := strconv.Itoa(subject.End.Minute())
+	if minuteEnd == "0" {
+		minuteEnd += "0"
+	}
+
 	text += fmt.Sprintf("    %s:%s - %s:%s  %s\n\n", strconv.Itoa(subject.Start.Hour()),
-		strconv.Itoa(subject.Start.Minute()), strconv.Itoa(subject.End.Hour()), strconv.Itoa(subject.End.Minute()), subject.Classroom)
+		minuteStart, strconv.Itoa(subject.End.Hour()), minuteEnd, subject.Classroom)
 
 	if subject.Teacher != "" {
 		text += fmt.Sprintf("    %s\n", subject.Teacher)
@@ -53,8 +64,8 @@ func (c *ScheduleConv) ScheduleToText(schedule domain.Schedule) map[string]strin
 
 		message := c.subjectToText(subject)
 		if !ok {
-			info = fmt.Sprintf("%s %s (%s)\n", subject.Start.Format("02-01-2006"),
-				dayOfWeek[subject.Start.Weekday().String()], subject.Subgroup)
+			info = fmt.Sprintf("%s %s\n", subject.Start.Format("02.01.2006"),
+				dayOfWeek[subject.Start.Weekday().String()])
 		}
 		info += message
 		messages[subject.Start.Weekday().String()] = info

@@ -31,6 +31,24 @@ func (c *ScheduleWeekCommand) Exec(b bot.IBot, message *tgbotapi.Message) error 
 	return err
 }
 
+type ScheduleNextWeakCommand struct{}
+
+func NewScheduleNextWeakCommand() *ScheduleNextWeakCommand {
+	return &ScheduleNextWeakCommand{}
+}
+
+func (c *ScheduleNextWeakCommand) Exec(b bot.IBot, message *tgbotapi.Message) error {
+	user, err := isUser(b, message)
+	if err != nil {
+		command := NewAskGroupCommand()
+		return command.Exec(b, message)
+	}
+
+	schedule := b.GetServices().GetOnNextWeek(user)
+	err = b.SendSchedule(schedule, message.Chat.ID, bot.DefaultChannel)
+	return err
+}
+
 type ScheduleDayCommand struct{}
 
 func NewScheduleDayCommand() *ScheduleDayCommand {

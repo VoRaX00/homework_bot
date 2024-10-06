@@ -24,6 +24,7 @@ const (
 	commandScheduleDate     = "schedule_date"
 	commandScheduleToday    = "schedule_today"
 	commandScheduleTomorrow = "schedule_tomorrow"
+	commandScheduleNextWeek = "schedule_next_week"
 	commandAskGroup         = "ask_group"
 )
 
@@ -89,6 +90,8 @@ func (f *Factory) GetCommand(message *tgbotapi.Message) ICommand {
 		return NewScheduleTodayCommand()
 	case commandScheduleTomorrow:
 		return NewScheduleTomorrowCommand()
+	case commandScheduleNextWeek:
+		return NewScheduleNextWeakCommand()
 	default:
 		return NewDefaultCommand()
 	}
