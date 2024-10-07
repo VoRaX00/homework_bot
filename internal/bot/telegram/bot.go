@@ -99,6 +99,10 @@ func (b *Bot) handleUpdate(update tgbotapi.Update) {
 		return
 	}
 
+	if update.Message.Chat.Type == "supergroup" {
+		return
+	}
+
 	factory := handler.NewFactory()
 	h := factory.GetHandler(b, update.Message)
 	err := h.Handle(b, update.Message)
