@@ -21,7 +21,8 @@ type IHomeworkService interface {
 
 type IScheduleService interface {
 	GetOnDate(user domain.User, date time.Time) domain.Schedule
-	GetOnWeek(user domain.User) domain.Schedule
+	GetOnWeek(user domain.User, lastSunday, saturday time.Time) domain.Schedule
+	GetOnThisWeek(user domain.User) domain.Schedule
 	GetOnNextWeek(user domain.User) domain.Schedule
 	GetOnToday(user domain.User) domain.Schedule
 	GetOnTomorrow(user domain.User) domain.Schedule

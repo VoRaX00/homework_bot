@@ -62,5 +62,6 @@ func (p *FefuParser) ParseSchedule(codeDirection, link string, studyGroup int) (
 			resultInput.Subjects = append(resultInput.Subjects, subject)
 		}
 	}
+
 	return resultInput, nil
 }

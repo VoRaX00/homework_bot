@@ -26,7 +26,7 @@ func (c *ScheduleWeekCommand) Exec(b bot.IBot, message *tgbotapi.Message) error 
 		return command.Exec(b, message)
 	}
 
-	schedule := b.GetServices().GetOnWeek(user)
+	schedule := b.GetServices().GetOnThisWeek(user)
 	err = b.SendSchedule(schedule, message.Chat.ID, bot.DefaultChannel)
 	return err
 }
@@ -114,6 +114,7 @@ func (c *ScheduleTomorrowCommand) Exec(b bot.IBot, message *tgbotapi.Message) er
 	}
 
 	schedule := b.GetServices().GetOnTomorrow(user)
+
 	err = b.SendSchedule(schedule, message.Chat.ID, bot.DefaultChannel)
 	return err
 }
