@@ -22,7 +22,7 @@ func ByteToSchedule(body []byte) (domain.Schedule, error) {
 	return schedule, err
 }
 
-func (p *FefuParser) ParseSchedule(codeDirection, link string, studyGroup int) (domain.Schedule, error) {
+func (p *FefuParser) ParseSchedule(link string, studyGroup int) (domain.Schedule, error) {
 	client := &http.Client{}
 	req, err := http.NewRequest("GET", link, nil)
 	if err != nil {

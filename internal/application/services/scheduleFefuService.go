@@ -21,15 +21,21 @@ func NewScheduleFefuService() *ScheduleFefuService {
 	}
 }
 
-func generateLink(typeSchedule string, firstDate, secondDate time.Time) string {
+func generateLink(numberGroup, typeSchedule string, firstDate, secondDate time.Time) string {
+	groups := map[string]string{
+		"Б9122-09.03.04": "5560",
+		"Б3122-08.03.01": "5623",
+	}
+
 	link := fmt.Sprintf("https://univer.dvfu.ru/schedule/get?type=%s&start=%s", typeSchedule, firstDate.Format("2006-01-02"))
-	link += "T14%3A00%3A00.000Z&" + fmt.Sprintf("end=%s", secondDate.Format("2006-01-02")) + "T14%3A00%3A00.000Z&groups%5B%5D=5560&ppsId=&facilityId=0"
+	link += "T14%3A00%3A00.000Z&" + fmt.Sprintf("end=%s", secondDate.Format("2006-01-02")) + "T14%3A00%3A00.000Z&"
+	link += "groups%5B%5D=" + fmt.Sprintf("%s&ppsId=&facilityId=0", groups[numberGroup])
 	return link
 }
 
 func (s *ScheduleFefuService) GetOnDate(user domain.User, date time.Time) domain.Schedule {
-	link := generateLink("agendaDay", date.Add(-24*time.Hour), date)
-	schedule, err := s.parser.ParseSchedule(user.CodeDirection, link, user.StudyGroup)
+	link := generateLink(user.CodeDirection, "agendaDay", date.Add(-24*time.Hour), date)
+	schedule, err := s.parser.ParseSchedule(link, user.StudyGroup)
 	if err != nil {
 		return domain.Schedule{}
 	}
@@ -47,9 +53,9 @@ func getDatesForWeek() (time.Time, time.Time) {
 }
 
 func (s *ScheduleFefuService) GetOnWeek(user domain.User, lastSunday, saturday time.Time) domain.Schedule {
-	link := generateLink("agendaWeek", lastSunday, saturday)
+	link := generateLink(user.CodeDirection, "agendaWeek", lastSunday, saturday)
 
-	schedule, err := s.parser.ParseSchedule(user.CodeDirection, link, user.StudyGroup)
+	schedule, err := s.parser.ParseSchedule(link, user.StudyGroup)
 	if err != nil {
 		logrus.Errorf("Error in parse schedule, %v", err)
 		return domain.Schedule{}
